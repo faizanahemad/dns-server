@@ -39,7 +39,7 @@ class DnsServer(config: Config) extends Injectable {
     val statusFuture = status.future().flatMap {
                                                  case ServerStatus(ServerStatus.NOT_STARTED) | ServerStatus(ServerStatus.STOPPED) =>
                                                    manager ! Dns.Bind(dnsHandlerActor,
-                                                                      config.dnsConfig.port)
+                                                                      config.dnsConf.port)
                                                    status alter ServerStatus(ServerStatus.STARTING)
                                                }
 

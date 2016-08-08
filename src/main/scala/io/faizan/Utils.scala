@@ -66,12 +66,14 @@ object Utils {
 
   def checkFileValidity(file: String): Boolean = {
     val fl = new File(file)
-    if (fl.canRead) {
-      true
-    }
-    else {
-      false
-    }
+    checkFileValidity(fl)
+  }
+
+  def checkFileValidity(file:File):Boolean = if (file.canRead) {
+    true
+  }
+  else {
+    false
   }
 
   def checkUrlValidity(uri: String): Boolean = {
@@ -113,14 +115,13 @@ object Utils {
   }
 
   def putJsonFileContents(uri: String, content: AnyRef):Boolean = {
-    checkFileValidity(uri) match {
-      case true=>
-        val jsonString = mapper.writeValueAsString(content)
-        Try(FileUtils.writeStringToFile(new File(uri), jsonString, StandardCharsets.UTF_8))
-        .map((u)=>true).getOrElse(false)
+    putJsonFileContents(new File(uri),content)
+  }
 
-      case false=>false
-    }
+  def putJsonFileContents(uri: File, content: AnyRef):Boolean = {
+    val jsonString = mapper.writeValueAsString(content)
+    Try(FileUtils.writeStringToFile(uri, jsonString, StandardCharsets.UTF_8))
+    .map((u)=>true).getOrElse(false)
   }
 
   def toJson(value: Any): String = {

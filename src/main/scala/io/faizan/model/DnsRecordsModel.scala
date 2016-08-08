@@ -41,9 +41,9 @@ class DnsRecordsModelDB(implicit inj: Injector) extends DnsRecordsModel with Inj
 }
 
 class DnsRecordsModelJson(implicit inj: Injector) extends DnsRecordsModel with Injectable {
-  private val appConf = conf.appConf
+  private val appConf = conf.application
   private def getJsonFlatConfig: JsonNode = {
-    val dnsConfigFile = conf.appConf.dnsJsonFile
+    val dnsConfigFile = conf.application.dnsJsonFile
     Utils.getJsonFileContents(dnsConfigFile)
   }
   def fetchAll:java.util.Map[String,String] = {
@@ -69,7 +69,7 @@ class DnsRecordsModelJson(implicit inj: Injector) extends DnsRecordsModel with I
 }
 
 class DnsRecordsModelFlat(implicit inj: Injector) extends DnsRecordsModel with Injectable {
-  val appConf = conf.appConf
+  val appConf = conf.application
   override def fetchAll:java.util.Map[String,String] = new util.HashMap[String,String](128,0.5f)
 
   override def write(entries: Map[String, String]): Boolean = true

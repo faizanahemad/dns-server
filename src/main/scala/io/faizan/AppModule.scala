@@ -32,7 +32,7 @@ class AppModule(config: Config) extends Module {
                                                                 "configBasedRouter")
   bind[DnsRecordsStorage] to new DnsRecordsStorage
   bind[InetSocketAddress] identifiedBy dnsResolverAddress to new InetSocketAddress(
-    config.dnsConfig.dnsResolver, 53)
+    config.dnsConf.dnsResolver, 53)
 }
 
 object AppModule {

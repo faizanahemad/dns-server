@@ -8,7 +8,7 @@ import scaldi.Module
 import slick.jdbc.MySQLProfile.api._
 
 class DBModule(config: Config) extends Module {
-  config.appConf.storageMedium match {
+  config.application.storageMedium match {
     case StorageMedium.MYSQLDB=>
       Utils.createDb(config.dbConf)
       lazy val db = Database.forURL(config.dbConf.url, config.dbConf.properties)

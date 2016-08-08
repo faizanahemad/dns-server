@@ -19,8 +19,8 @@ class DnsRecordsStorage(implicit inj: Injector) extends Injectable {
   val cache = CacheBuilder.newBuilder()
               .initialCapacity(512)
               .concurrencyLevel(Runtime.getRuntime.availableProcessors())
-              .maximumSize(conf.dnsConfig.maxEntries)
-              .expireAfterWrite(conf.dnsConfig.entryExpiryTime, conf.dnsConfig.timeUnit)
+              .maximumSize(conf.dnsConf.maxEntries)
+              .expireAfterWrite(conf.dnsConf.entryExpiryTime, conf.dnsConf.timeUnit)
               .build().asInstanceOf[Cache[String, ResourceRecordModifier]]
 
   def addEntries(entries: Map[String, String]) = {

@@ -44,8 +44,9 @@ case class DNSConfig(dnsResolver:String, maxEntries:Int, entryExpiryTime:Int, va
   }
   val timeUnit  = TimeUnit.MINUTES
 }
+@JsonIgnoreProperties(Array("defaultConfDir"))
 case class ApplicationConfig(var dnsJsonFile:String,@JsonScalaEnumeration(classOf[StorageMediumType]) storageMedium:StorageMedium.Value) {
-  val defaultConfDir = Paths.get(System.getProperty("user.home") + File.separator + ".dnsserver")
+  val defaultConfDir = Config.defaultConfDir
   Files.createDirectories(defaultConfDir)
   if(!Utils.checkUrlValidity(dnsJsonFile)) {
     val configuredFilePath = Paths.get(dnsJsonFile)
@@ -65,34 +66,41 @@ case class ApplicationConfig(var dnsJsonFile:String,@JsonScalaEnumeration(classO
   }
 }
 @JsonIgnoreProperties(Array("config"))
-case class Config(appConf: ApplicationConfig,dbConf:DBConfig, dnsConfig:DNSConfig,config:com.typesafe.config.Config) {
+case class Config(application: ApplicationConfig, dbConf:DBConfig, dnsConf:DNSConfig, config:com.typesafe.config.Config) {
   def this(appConf: ApplicationConfig,dbConf:DBConfig, dnsConfig:DNSConfig) {
-    this(appConf, dbConf, dnsConfig, ConfigFactory.load())
-  }
-  def persist(): Unit = {
-    persist(this)
-  }
-  private def persist(config: Config): Unit = {
-
+    this(appConf, dbConf, dnsConfig, Config.readConfig)
   }
 }
 object Config {
+  val defaultConfDir = Paths.get(System.getProperty("user.home") + File.separator + ".dnsserver")
+  val configFile = Paths.get(defaultConfDir.toString,"application.json").toFile
   var config =Option.empty[Config]
+  protected def readConfig = {
+    ConfigFactory.invalidateCaches()
+    val default:com.typesafe.config.Config=ConfigFactory.load()
+    val fileConfig = Try(ConfigFactory.parseFile(configFile)).getOrElse(ConfigFactory.load())
+    val cfg = fileConfig.withFallback(default)
+    cfg
+  }
+  protected def saveConfig(conf: Config) = {
+    Utils.putJsonFileContents(configFile,conf)
+  }
   def getConfig = {
     if (config.isEmpty) {
-      ConfigFactory.invalidateCaches()
-      val cfg:com.typesafe.config.Config=ConfigFactory.load()
-      val dbConf :DBConfig=cfg.get[DBConfig]("dbConf").value
-      val dnsConf = cfg.get[DNSConfig]("dnsConf").value
-      val applicationConfig = cfg.get[ApplicationConfig]("application").value
-      config = Option(Config(applicationConfig,dbConf,dnsConf,cfg))
+      getNewConfig
     }
     config.get
   }
+  def getNewConfig = {
+    val cfg = readConfig
+    val dbConf :DBConfig=cfg.get[DBConfig]("dbConf").value
+    val dnsConf = cfg.get[DNSConfig]("dnsConf").value
+    val applicationConfig = cfg.get[ApplicationConfig]("application").value
+    config = Option(Config(applicationConfig,dbConf,dnsConf,cfg))
+    config.get
+  }
   def setConfig(conf: Config) = {
-    config = Option(conf)
-    getConfig.persist()
-    ConfigFactory.invalidateCaches()
-    config = Option(getConfig.copy())
+    saveConfig(conf)
+    config = Option(getNewConfig)
   }
 }
