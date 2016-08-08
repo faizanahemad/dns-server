@@ -1,0 +1,110 @@
+plugins {
+    id "us.kirchmeier.capsule" version "1.0.2"
+}
+plugins {
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'idea'
+
+sourceSets.main.java.srcDirs = ['src/main/java']
+sourceSets.main.scala.srcDirs = ['src/main/scala']
+sourceSets.main.output.classesDir = 'build/classes'
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ["config","src/main/resources"]
+            includes = ["**/*.xml","**/*.json","**/*.gif"]
+        }
+    }
+}
+
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+    maven {
+        url "http://localhost:8081/artifactory/libs-release-local"
+    }
+}
+
+dependencies {
+    compile('com.github.mkroli:dns4s-core_2.11:0.9')
+    compile('com.github.mkroli:dns4s-akka_2.11:0.9')
+    compile 'com.fasterxml.jackson.core:jackson-core:2.7.5'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.7.5'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.7.5'
+    compile 'com.fasterxml.jackson.module:jackson-module-scala_2.11:2.7.5'
+
+    compile 'org.http4s:http4s-dsl_2.11:0.15.0-SNAPSHOT'
+    compile 'org.http4s:http4s-blaze-server_2.11:0.15.0-SNAPSHOT'
+    compile 'org.http4s:http4s-client_2.11:0.14.1a'
+    compile 'org.http4s:http4s-blaze-client_2.11:0.14.1a'
+
+    compile 'org.json4s:json4s-core_2.11:3.4.0'
+    compile 'org.json4s:json4s-jackson_2.11:3.4.0'
+    compile 'org.json4s:json4s-ext_2.11:3.4.0'
+
+    compile 'javax.annotation:javax.annotation-api:1.2'
+
+
+    compile "org.scala-lang:scala-library:"+scalaVersion
+    compile "org.scala-lang:scala-reflect:"+scalaVersion
+    compile "org.scala-lang:scala-compiler:"+scalaVersion
+
+    compile 'org.slf4j:slf4j-api:'+slf4jVersion
+    compile 'ch.qos.logback:logback-classic:'+logbackVersion
+    compile 'ch.qos.logback:logback-core:'+logbackVersion
+
+    compile 'com.typesafe.slick:slick_2.11:'+slickVersion
+    compile 'com.typesafe.slick:slick-hikaricp_2.11:'+slickVersion
+    compile 'com.typesafe.akka:akka-actor_2.11:'+akkaVersion
+    compile 'com.typesafe.akka:akka-agent_2.11:'+akkaVersion
+
+
+    compile 'mysql:mysql-connector-java:6.0.3'
+    compile 'org.scaldi:scaldi_2.11:0.5.7'
+    compile 'com.typesafe:config:1.3.0'
+    compile 'com.github.kxbmap:configs_2.11:0.4.2'
+    compile 'com.google.guava:guava:19.0'
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+}
+jar {
+    classifier = 'all'
+    manifest {
+        attributes 'Implementation-Title': title,
+                'Implementation-Version': version,
+                'Main-Class': mainClassFile,
+                'SplashScreen-Image': 'loader.gif'
+    }
+    include{sourceSets.main.output.classesDir}
+    zip64 true
+
+}
+
+task fatCapsule(type: FatCapsule) {
+    applicationClass mainClassFile
+    classifier = 'release'
+    reallyExecutable
+    capsuleManifest {
+        systemProperties['logs'] = './logs'
+        systemProperties['dns.port'] = '53'
+        minJavaVersion = '1.8.0'
+    }
+}
+
+shadowJar {
+    classifier = 'shadow'
+    append 'reference.conf'
+}
