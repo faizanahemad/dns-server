@@ -18,7 +18,7 @@ object StorageMedium extends Enumeration {
   val JSON,MYSQLDB,FLAT_FILE = Value
 }
 class StorageMediumType extends TypeReference[StorageMedium.type]
-@JsonIgnoreProperties(Array("properties"))
+@JsonIgnoreProperties(Array("properties","driver","numThreads"))
 case class DBConfig(user:String
                     , password:String
                     , url:String
@@ -36,7 +36,7 @@ case class DBConfig(user:String
                                       "keepAliveConnection"->keepAliveConnection.toString,
                                       "numThreads"->numThreads.toString)
 }
-@JsonIgnoreProperties(Array("timeUnit"))
+@JsonIgnoreProperties(Array("timeUnit","port","dnsPort"))
 case class DNSConfig(dnsResolver:String, maxEntries:Int, entryExpiryTime:Int, var port:Int) {
   private val dnsPort = System.getProperty("dns.port")
   if (dnsPort!=null) {

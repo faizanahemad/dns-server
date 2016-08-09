@@ -10,7 +10,7 @@
     "url": "jdbc:mysql://localhost",
     "dBName": "testdb",
     "driver": "com.mysql.cj.jdbc.Driver",
-    "numThreads": 2,
+    "numThreads": 4,
     "connectionPool": "disabled",
     "keepAliveConnection": true
   },
@@ -28,6 +28,6 @@
     "dnsResolver":"8.8.4.4",
     "maxEntries":32000,
     "entryExpiryTime":120,
-    "port":5354
+    "port":53
   }
 }
