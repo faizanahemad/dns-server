@@ -9,15 +9,17 @@ class SplashDisplay(title: String) extends Frame(title) with ActionListener {
   private var splash = Option.empty[SplashScreen]
   private var g = Option.empty[Graphics2D]
   private var progressArea = Option.empty[Rectangle2D.Double]
+  private val dim = (400,300)
 
 
   private def renderSplashFrame(display: String) {
+    val textX = ((dim._1 - 8.974d*(display.length+3))/2).toInt
     g.foreach((gr) => {
       gr.setComposite(AlphaComposite.Clear)
-      gr.fillRect(100, 180, 230, 80)
+      gr.fillRect(0, 180, dim._1, 80)
       gr.setPaintMode()
       gr.setColor(Color.BLACK)
-      gr.drawString(display + "...", 100, 230)
+      gr.drawString(display + "...", textX, 230)
     })
   }
 
@@ -46,8 +48,7 @@ class SplashDisplay(title: String) extends Frame(title) with ActionListener {
         val y = splashProgressArea.getMinY.toInt
         val wid = splashProgressArea.getWidth.toInt
         val hgt = splashProgressArea.getHeight.toInt
-        var doneWidth = pct * wid / 100.0f.round
-        doneWidth = Math.max(0, Math.min(doneWidth, wid - 1)) // limit 0-width
+        val doneWidth = (Math.min(pct, 100) * wid / 100.0f).round
         // fill the done part one pixel smaller than the outline
         splashGraphics.setPaint(Color.BLUE)
         splashGraphics.fillRect(x, y + 1, doneWidth, hgt - 1)
@@ -73,7 +74,7 @@ class SplashDisplay(title: String) extends Frame(title) with ActionListener {
       val splashProgressArea = new Rectangle2D.Double(width * .05, height * .88, width*0.90, 3)
       splashProgressArea
     })
-    setSize(300, 200)
+    setSize(dim._1, dim._2)
     setLayout(new BorderLayout)
     createMenuBar
   }

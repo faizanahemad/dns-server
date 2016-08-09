@@ -57,6 +57,8 @@ dependencies {
     compile 'org.json4s:json4s-ext_2.11:3.4.0'
 
     compile 'javax.annotation:javax.annotation-api:1.2'
+    compile 'com.vnetpublishing.java:super-user-application:0.0.5'
+
 
 
     compile "org.scala-lang:scala-library:"+scalaVersion
