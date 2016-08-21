@@ -4,6 +4,9 @@ plugins {
 plugins {
     id 'com.github.johnrengelman.shadow' version '1.2.3'
 }
+plugins {
+    id "com.moowork.node" version "0.13"
+}
 
 
 apply plugin: 'java'
@@ -18,7 +21,7 @@ sourceSets {
     main {
         resources {
             srcDirs = ["config","src/main/resources"]
-            includes = ["**/*.xml","**/*.json","**/*.gif"]
+            includes = ["**/*.xml","**/*.json","**/*.gif","**/*.png","**/*.jpg","**/*.jpeg","**/*.jade","**/*.js","**/*.css","**/*.html","**/*.ts"]
         }
     }
 }
@@ -46,6 +49,9 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.7.5'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.7.5'
     compile 'com.fasterxml.jackson.module:jackson-module-scala_2.11:2.7.5'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5'
+    compile 'de.neuland-bfi:jade4j:1.2.3'
+
 
     compile 'org.http4s:http4s-dsl_2.11:0.15.0-SNAPSHOT'
     compile 'org.http4s:http4s-blaze-server_2.11:0.15.0-SNAPSHOT'
@@ -110,3 +116,15 @@ shadowJar {
     classifier = 'shadow'
     append 'reference.conf'
 }
+
+task npmInstallDeps(type: NpmTask) {
+    args = ['install', '--prefix', 'src/main/resources/angular2']
+}
+
+task npmTsc(type: NpmTask) {
+    args = ['run','tsc','--prefix', 'src/main/resources/angular2']
+}
+
+npmTsc.dependsOn npmInstallDeps
+build.dependsOn npmTsc, npmInstallDeps
+shadowJar.dependsOn build,npmTsc,npmInstallDeps

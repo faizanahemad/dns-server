@@ -7,7 +7,7 @@
     "user":"root",
     "password":"",
     "slick.driver":"scala.slick.driver.MySQLDriver",
-    "url": "jdbc:mysql://localhost",
+    "url": "jdbc:mysql://localhost?autoReconnect=true&useSSL=false",
     "dBName": "testdb",
     "driver": "com.mysql.cj.jdbc.Driver",
     "numThreads": 4,

@@ -18,8 +18,5 @@ class DBModule(config: Config) extends Module {
     case StorageMedium.JSON=>
       bind[DnsRecords] to new DnsRecords with MockDAO[String,DnsRecord, DnsRecordTable]
       bind[DnsRecordsModel] to new DnsRecordsModelJson
-    case StorageMedium.FLAT_FILE=>
-      bind[DnsRecords] to new DnsRecords with MockDAO[String,DnsRecord, DnsRecordTable]
-      bind[DnsRecordsModel] to new DnsRecordsModelFlat
   }
 }

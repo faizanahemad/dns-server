@@ -1,6 +1,7 @@
 package io.faizan.http
 
 import io.faizan.config.Config
+import io.faizan.model.DnsRecord
 import io.faizan.{AppModule, DnsServer, ServerStatus, Utils}
 import org.http4s.EntityEncoder._
 import org.http4s.MediaType._
@@ -103,27 +104,20 @@ class HttpServer{
                                                         `Content-Type`(`application/json`)))
                                        .getOrElse(BadRequest())
 
-                                     case req@POST -> Root =>
+                                     case req @ GET -> Root / "search" =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
-                                       req.as[String].map(body => {
-                                         val entries = read[Map[String, String]](body)
+                                       req.params.get("domain").filter(_.length>3).map(domain=> {
                                          serverOptional
-                                         .map(server => {
-                                           if (server.dnsRecordsStore.deleteAndCreateNew(entries)) {
-                                             Ok(Utils.toJson(server.dnsDetails.getDnsMap))
-                                             .putHeaders(`Content-Type`(`application/json`))
-                                           }
-                                           else {
-                                             BadRequest()
-                                           }
-                                         })
+                                         .map(server => Ok(Utils.toJson(server.dnsDetails.searchDnsMap(domain)))
+                                                        .putHeaders(
+                                                          `Content-Type`(`application/json`)))
                                          .getOrElse(BadRequest())
-                                       }).or(Task(BadRequest())).run
+                                       }).getOrElse(BadRequest())
 
                                      case req@PUT -> Root =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
                                        req.as[String].map(body => {
-                                         val newCon = read[Map[String, String]](body)
+                                         val newCon = read[Map[String, DnsRecord]](body)
                                          serverOptional
                                          .map(server => {
                                            if (server.dnsRecordsStore.addEntries(newCon)) {
@@ -169,6 +163,7 @@ class HttpServer{
   def router: HttpService = Router(
     "/config" -> configService,
     "/admin" -> adminService,
-    "/list" -> listingService
+    "/list" -> listingService,
+    "" -> UiRouter.router
   )
 }

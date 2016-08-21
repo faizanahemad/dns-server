@@ -15,7 +15,7 @@ import io.faizan.{AppModuleSupport, Utils}
 import scala.util.Try
 
 object StorageMedium extends Enumeration {
-  val JSON,MYSQLDB,FLAT_FILE = Value
+  val JSON,MYSQLDB = Value
 }
 class StorageMediumType extends TypeReference[StorageMedium.type]
 @JsonIgnoreProperties(Array("properties","driver","numThreads"))
@@ -34,7 +34,9 @@ case class DBConfig(user:String
                                       "driver"->driver,
                                       "connectionPool"->connectionPool,
                                       "keepAliveConnection"->keepAliveConnection.toString,
-                                      "numThreads"->numThreads.toString)
+                                      "numThreads"->numThreads.toString,
+                                      "useSSL"->"false",
+                                      "rewriteBatchedStatements"->"true")
 }
 @JsonIgnoreProperties(Array("timeUnit","port","dnsPort"))
 case class DNSConfig(dnsResolver:String, maxEntries:Int, entryExpiryTime:Int, var port:Int) {

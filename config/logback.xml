@@ -13,7 +13,12 @@
         </encoder>
     </appender>
 
-    <logger name="scala.slick" level="ERROR" />
+    <logger name="scala.slick" level="INFO" />
+    <logger name="slick.jdbc" level="DEBUG"/>
+    <logger name="slick" level="INFO" />
+    <logger name="slick.jdbc.JdbcBackend.parameter" level="DEBUG" />
+    <logger name="slick.jdbc.JdbcBackend.statement" level="DEBUG" />
+    <logger name="slick.jdbc.JdbcBackend.benchmark" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="FILE" />

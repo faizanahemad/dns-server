@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.github.mkroli.dns4s.dsl.{ARecord, RRName, ResourceRecordModifier}
 import com.google.common.base.CharMatcher
 import io.faizan.config.DBConfig
+import io.faizan.model.DnsRecord
 import org.apache.commons.io.{FileUtils, IOUtils}
 import slick.jdbc.MySQLProfile.api._
 
@@ -21,7 +22,7 @@ import scala.util.Try
 object Utils {
   private val mapper = AppModuleSupport.mapperIdentity
 
-  private val actionTimeout = 10 second
+  private val actionTimeout = 4 second
 
   def createDb(dbConfig: DBConfig) = {
     val dbName = dbConfig.dBName
@@ -138,6 +139,13 @@ object Utils {
     records.putAll(entries.map(e => (Utils.urlToDomainName(e._1), e._2))
                    .map(e => (e._1, RRName(e._1) ~ ARecord(e._2))).toMap.asJava)
     records
+  }
+
+  def convertToDns4s(entry: DnsRecord):ResourceRecordModifier = {
+    if (entry !=null)
+      RRName(Utils.urlToDomainName(entry.domain)) ~ ARecord(entry.dns)
+    else
+      null
   }
   def delay[T](delay: Long)(block: => T): Future[T] = {
     val promise = Promise[T]()

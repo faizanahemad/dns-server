@@ -41,6 +41,10 @@ protected[model] trait DAO[PK,T <: IdentifiableRow[PK], U <: IdentifiableTable[P
     run(findByPkQuery(pk).result.head)
   }
 
+  def findByPkIn(keys:Iterable[PK]):Iterable[T] = {
+    run(findByPkInQuery(keys).result)
+  }
+
 
   def fetchAll: Iterable[T] = run(queryHelper.result).toList
 
@@ -90,6 +94,8 @@ trait MockDAO[PK,T <: IdentifiableRow[PK], U <: IdentifiableTable[PK,T]] extends
   override def createTableIfNotExists(tables: TableQuery[_ <: Table[_]]*): Future[Seq[Unit]] = {
     Future(List())
   }
+
+  override def findByPkIn(keys:Iterable[PK]):Iterable[T] = List()
 
   override def insertOrUpdate(elements:Iterable[T]):Int = 0
 

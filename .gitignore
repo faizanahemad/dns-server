@@ -117,4 +117,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 release/osx/dns-server-0.0.1-shadow.jar
+src/main/scala/http/ui/node_modules
 

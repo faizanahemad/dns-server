@@ -55,22 +55,13 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
 
 
   private def fetchDNSAnswer(qname: String, question: QuestionSection): Future[DnsAnswer] = {
-    val dnsAnswer = dnsDetails.cache.getIfPresent(qname)
-    if (dnsAnswer == null) {
-      val ans = handleNonCached(qname, question)
-      ans
+    val dnsAnswer = dnsDetails.getIfPresent(qname)
+    if (dnsAnswer.isEmpty) {
+      fetchFromDNSResolver(question)
     }
     else {
-      Future(DnsAnswer(Option(dnsAnswer), 0, true))
+      Future(DnsAnswer(dnsAnswer, 0, true))
     }
-  }
-
-  private def handleNonCached(qname: String, question: QuestionSection): Future[DnsAnswer] = {
-    val dnsValue = dnsDetails.dnsMap.get(qname)
-    if (dnsValue == null) {
-      return fetchFromDNSResolver(question)
-    }
-    Future(DnsAnswer(Option(dnsValue), 0, false))
   }
 
   private def fetchFromDNSResolver(question: QuestionSection): Future[DnsAnswer] = {

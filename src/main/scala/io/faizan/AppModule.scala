@@ -7,6 +7,7 @@ import akka.agent.Agent
 import akka.routing.FromConfig
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper, SerializationFeature}
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import io.faizan.actor.DnsHandlerActor
@@ -56,9 +57,11 @@ object AppModuleSupport {
 
   val mapperIdentity = new ObjectMapper() with ScalaObjectMapper
   mapperIdentity.registerModule(DefaultScalaModule)
+  mapperIdentity.registerModule(new JavaTimeModule())
   mapperIdentity.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true)
   mapperIdentity.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
   mapperIdentity.enable(SerializationFeature.INDENT_OUTPUT)
+  mapperIdentity.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
   val dnsHandlerActor = "'DnsHandler"
   val dnsMapName = "'DnsMap"
