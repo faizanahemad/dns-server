@@ -7,15 +7,12 @@
     var map = {
         'app':                        'angular2/app', // 'dist',
         'rxjs':                       'angular2/node_modules/rxjs',
-        '@angular':                   'angular2/node_modules/@angular',
-        'angular2-in-memory-web-api': 'node_modules/angular2-in-memory-web-api'
+        '@angular':                   'angular2/node_modules/@angular'
     };
     // packages tells the System loader how to load when no filename and/or no extension
     var packages = {
         'app':                        { main: 'main.js',  defaultExtension: 'js' },
-        '@angular':                   { defaultExtension: 'js' },
-        'rxjs':                       { defaultExtension: 'js' },
-        'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' }
+        'rxjs':                       { main: 'Rx.js', defaultExtension: 'js' }
     };
     var ngPackageNames = [
         'common',
@@ -28,14 +25,9 @@
         'router',
         'upgrade'
     ];
-    // Individual files (~300 requests):
-    function packIndex(pkgName) {
-        packages['@angular/'+pkgName] = { main: 'index.js', defaultExtension: 'js' };
-    }
     // Bundled (~40 requests):
     function packUmd(pkgName) {
         packages['@angular/'+pkgName] = { main: 'bundles/' + pkgName + '.umd.js', defaultExtension: 'js' };
-        packages['angular2/'] = { main: 'bundles/' + pkgName + '.umd.js', defaultExtension: 'js' };
     }
     // Most environments should use UMD; some (Karma) need the individual index files
     var setPackageConfig = System.packageWithIndex ? packIndex : packUmd;
@@ -48,4 +40,6 @@
     System.config(config);
 })(this);
 
-System.import('app').catch(function(err){ console.error(err); });
+System.import('app').catch(function(err){
+    console.error(err);
+});
