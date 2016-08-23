@@ -1,0 +1,47 @@
+<div class="container-fluid" style="padding: 0px 0px 10px 10px">
+    <nav role="navigation" class="navbar bootstrap-compatibility navbar-fixed-top">
+        <div class="container">
+            <ul class="nav navbar-nav navbar-set-link-padding-10px">
+                <div class="navbar-header">
+                    <a href="/ui">
+                        <div class="header-logo" style="display: block;">DNS<span class="italic" style="padding-left: 10px;">Server</span>
+                        </div>
+                        <div class="header-description hidden-xs hidden-sm hidden-md"
+                             data-toggle="collapse"
+                             style="display: block;">DNS Server in Scala</div>
+                    </a>
+                </div>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/download">Download</a></li>
+                <li><a target="_blank" href="https://github.com/faizanahemad/dns-server" title="DNS Server at GitHub"><i class="fa fa-github fa-lg"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="row" style="padding-top: 65px;">
+        <div class="col-md-4" style="padding-left: 50px;"><div class="alert alert-success"><span class="label label-success">Status: {{ status | async }} </span></div></div>
+        <div class="col-md-4"><div class="alert alert-info"><span class="label label-success">Cached Entries</span></div></div>
+        <div class="col-md-4"><div class="alert alert-info"><span class="label label-success">Stored Entries</span></div></div>
+    </div>
+    <div class="row"><div class="container-fluid"><br></div></div>
+
+    <div class="row">
+
+        <div class="col-md-2" style="padding-left: 50px;">
+            <controls style="font-weight: bold;font-family: Georgia;"></controls>
+        </div>
+        <div class="col-md-9">
+            <div id="listingRow" class="table-bordered"
+                 style="padding: 2px 4px 2px 4px; border-radius: 2px">
+                <listing-editor></listing-editor>
+            </div>
+        </div>
+
+        <div class="col-md-1"></div>
+    </div>
+
+
+    <div id="configRow" class="row table-bordered" style="padding: 2px 4px 2px 4px; border-radius: 2px;">
+        <config-editor></config-editor>
+    </div>
+</div>

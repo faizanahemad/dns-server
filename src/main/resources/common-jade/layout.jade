@@ -1,0 +1,16 @@
+doctype html
+html(lang="en")
+    head
+        block head
+            include page_head_block
+        block common_css
+            include common_apps_css
+        block page_css
+    block bodytag
+        body
+            block page_head
+            block common_js
+                include common_apps_js
+            block page_js
+            block page_content
+
