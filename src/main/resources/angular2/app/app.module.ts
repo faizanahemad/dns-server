@@ -9,6 +9,7 @@ import {ConfigComponent} from "./components/config.component";
 import {ListingComponent} from "./components/listing.component";
 import {ControlsComponent} from "./components/controls.component";
 import {JsonKeyExtractPipe} from "./scripts/json-key-extract-pipe";
+import {ButtonComponent} from "./components/button.component";
 
 @NgModule({
     imports: [
@@ -21,7 +22,8 @@ import {JsonKeyExtractPipe} from "./scripts/json-key-extract-pipe";
         ConfigComponent,
         ListingComponent,
         ControlsComponent,
-        JsonKeyExtractPipe
+        JsonKeyExtractPipe,
+        ButtonComponent
     ],
     bootstrap: [ AppComponent ]
 })

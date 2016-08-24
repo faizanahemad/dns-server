@@ -4,4 +4,10 @@ import { Component } from '@angular/core';
     templateUrl: 'angular2/app/components/controls.component.html'
 })
 
-export class ControlsComponent { }
+export class ControlsComponent {
+    start() {
+
+    }
+
+
+}
