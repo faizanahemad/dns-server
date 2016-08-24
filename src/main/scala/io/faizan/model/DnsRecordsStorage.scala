@@ -58,6 +58,8 @@ class DnsRecordsStorage(implicit inj: Injector) extends Injectable {
 
   def getDnsMap = dnsMap
 
+  def getCachedMap = cache
+
   def searchDnsMap(domain:String) = {
     dnsMap.filter(_._1.contains(domain))
   }

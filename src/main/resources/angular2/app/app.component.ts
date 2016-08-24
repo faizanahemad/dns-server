@@ -9,16 +9,28 @@ import {Observable} from 'rxjs/Rx';
 @Injectable()
 export class AppComponent implements OnInit {
     status: Observable<string> = Observable.of("STOPPED");
-    totalEntries:string;
-    cachedEntries:string;
-    private url:string = "admin/status";
+    storedCount:Observable<string> = Observable.of("0");
+    cachedCount:Observable<string> = Observable.of("0");
+    private stats: Observable<Response>;
+    private url:string = "admin/stats";
     constructor(private http: Http) {}
-    getStatus(): Observable<string> {
-        return Observable.interval(2000)
+    private getStats(): Observable<Response> {
+        return Observable.interval(5000)
             .switchMap(() => this.http.get(this.url))
-            .map((r: Response) => r.json().status as string);
+    }
+    private getStatus(): Observable<string> {
+        return this.stats.map((r: Response) => r.json().status as string);
+    }
+    private getCachedCount(): Observable<string> {
+        return this.stats.map((r: Response) => r.json().cache as string);
+    }
+    private getStoredCount(): Observable<string> {
+        return this.stats.map((r: Response) => r.json().store as string);
     }
     ngOnInit(){
+        this.stats = this.getStats();
         this.status = this.getStatus();
+        this.cachedCount = this.getCachedCount();
+        this.storedCount = this.getStoredCount();
     }
 }

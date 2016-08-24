@@ -72,8 +72,21 @@ class HttpServer{
                                      implicit val formats = Serialization.formats(NoTypeHints)
                                      serverOptional
                                      .map(s => {
-                                       val status = "status" -> s.status.get().toString
                                        Ok(Utils.toJson(s.status.get()))
+                                       .putHeaders(`Content-Type`(`application/json`))
+                                     })
+                                     .getOrElse(Ok(Utils.toJson(ServerStatus(ServerStatus.STOPPED)))
+                                                .putHeaders(`Content-Type`(`application/json`)))
+
+                                   case GET -> Root / "stats" =>
+                                     implicit val formats = Serialization.formats(NoTypeHints)
+                                     serverOptional
+                                     .map(s => {
+                                       val status = "status" -> s.status.get().status.toString
+                                       val cacheEntries = "cache" -> s.dnsDetails.getCachedMap.size()
+                                       val storedEntires = "store" -> s.dnsDetails.getDnsMap.size
+                                       val response = Map(status,cacheEntries,storedEntires)
+                                       Ok(Utils.toJson(response))
                                        .putHeaders(`Content-Type`(`application/json`))
                                      })
                                      .getOrElse(Ok(Utils.toJson(ServerStatus(ServerStatus.STOPPED)))
