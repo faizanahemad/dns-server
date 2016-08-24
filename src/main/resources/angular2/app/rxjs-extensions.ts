@@ -1,5 +1,8 @@
 // Observable class extensions
+import 'rxjs/Rx';
 import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/from';
+import 'rxjs/add/observable/interval';
 import 'rxjs/add/observable/throw';
 
 // Observable operators

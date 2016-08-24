@@ -1,14 +1,14 @@
 import {Component, Injectable, OnInit} from "@angular/core";
 import './rxjs-extensions';
 import {Http, Response} from "@angular/http";
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs/Rx';
 @Component({
     selector: 'my-app',
     templateUrl: 'angular2/app/app.component.html'
 })
 @Injectable()
 export class AppComponent implements OnInit {
-    status: Observable<string>;
+    status: Observable<string> = Observable.of("STOPPED");
     totalEntries:string;
     cachedEntries:string;
     private url:string = "admin/status";
