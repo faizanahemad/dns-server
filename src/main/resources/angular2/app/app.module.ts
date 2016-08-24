@@ -8,6 +8,7 @@ import {FormsModule} from "@angular/forms";
 import {ConfigComponent} from "./components/config.component";
 import {ListingComponent} from "./components/listing.component";
 import {ControlsComponent} from "./components/controls.component";
+import {JsonKeyExtractPipe} from "./scripts/json-key-extract-pipe";
 
 @NgModule({
     imports: [
@@ -19,7 +20,8 @@ import {ControlsComponent} from "./components/controls.component";
         AppComponent,
         ConfigComponent,
         ListingComponent,
-        ControlsComponent
+        ControlsComponent,
+        JsonKeyExtractPipe
     ],
     bootstrap: [ AppComponent ]
 })

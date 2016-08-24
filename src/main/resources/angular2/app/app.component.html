@@ -19,9 +19,9 @@
         </div>
     </nav>
     <div class="row" style="padding-top: 65px;">
-        <div class="col-md-4" style="padding-left: 40px;"><div class="alert alert-warning"><p class="text-center text-success"><b>Status: {{ status | async }} </b></p></div></div>
-        <div class="col-md-4"><div class="alert alert-info"><p class="text-center text-warning"><b>Cached Entries: {{ cachedCount | async }}</b></p></div></div>
-        <div class="col-md-4" style="padding-right: 40px;"><div class="alert alert-warning"><p class="text-center text-primary"><b>Stored Entries: {{ storedCount | async }}</b></p></div></div>
+        <div class="col-md-4" style="padding-left: 40px;"><div class="alert alert-warning"><p class="text-center text-success"><b>Status: {{ stats | async | jsonExtract:'status' }} </b></p></div></div>
+        <div class="col-md-4"><div class="alert alert-info"><p class="text-center text-warning"><b>Cached Entries: {{ stats | async | jsonExtract:'cache' }}</b></p></div></div>
+        <div class="col-md-4" style="padding-right: 40px;"><div class="alert alert-warning"><p class="text-center text-primary"><b>Stored Entries: {{ stats | async | jsonExtract:'store' }}</b></p></div></div>
     </div>
     <div class="row"><div class="container-fluid"><br></div></div>
 

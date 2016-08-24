@@ -123,5 +123,7 @@ src/main/resources/angular2/app/components/*.js
 src/main/resources/angular2/app/components/*.js.map
 src/main/resources/angular2/app/*.js
 src/main/resources/angular2/app/*.js.map
+src/main/resources/angular2/app/scripts/*.js
+src/main/resources/angular2/app/scripts/*.js.map
 src/main/resources/angular2/typings
 
