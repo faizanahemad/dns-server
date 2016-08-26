@@ -4,7 +4,8 @@
             <ul class="nav navbar-nav navbar-set-link-padding-10px">
                 <div class="navbar-header">
                     <a href="/ui">
-                        <div class="header-logo" style="display: block;">DNS<span class="italic" style="padding-left: 10px;">Server</span>
+                        <div class="header-logo" style="display: block;">DNS<span class="italic"
+                                                                                  style="padding-left: 10px;">Server</span>
                         </div>
                         <div class="header-description hidden-xs hidden-sm hidden-md"
                              data-toggle="collapse"
@@ -13,17 +14,26 @@
                 </div>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="/download">Download</a></li>
-                <li><a target="_blank" href="https://github.com/faizanahemad/dns-server" title="DNS Server at GitHub"><i class="fa fa-github fa-lg"></i></a></li>
+                <li><a class="button-font" href="/download">Download</a></li>
+                <li><a target="_blank" href="https://github.com/faizanahemad/dns-server"
+                       title="DNS Server at GitHub"><i class="fa fa-github fa-lg"></i></a></li>
             </ul>
         </div>
     </nav>
     <div class="row" style="padding-top: 65px;">
-        <div class="col-md-4" style="padding-left: 40px;"><div class="alert alert-warning"><p class="text-center text-success"><b>Status: {{ stats | async | jsonExtract:'status' }} </b></p></div></div>
-        <div class="col-md-4"><div class="alert alert-info"><p class="text-center text-warning"><b>Cached Entries: {{ stats | async | jsonExtract:'cache' }}</b></p></div></div>
-        <div class="col-md-4" style="padding-right: 40px;"><div class="alert alert-warning"><p class="text-center text-primary"><b>Stored Entries: {{ stats | async | jsonExtract:'store' }}</b></p></div></div>
+        <div class="col-md-4" style="padding-left: 40px;">
+            <div class="alert alert-warning"><p [ngClass]="{'text-success': running, 'text-danger': !running}" class="text-center "><i [ngClass]="{'fa-check-square': running, 'fa-exclamation-triangle': !running}" class="fa fa-fw fa-lg "></i><b>Status: {{ stats.status }} </b></p></div>
+        </div>
+        <div class="col-md-4">
+            <div class="alert alert-info"><p class="text-center text-warning"><b>Cached Entries: {{ stats.cache }}</b></p></div>
+        </div>
+        <div class="col-md-4" style="padding-right: 40px;">
+            <div class="alert alert-warning"><p class="text-center text-primary"><b>Stored Entries: {{ stats.store }}</b></p></div>
+        </div>
     </div>
-    <div class="row"><div class="container-fluid"><br></div></div>
+    <div class="row">
+        <div class="container-fluid"><br></div>
+    </div>
 
     <div class="row">
 
