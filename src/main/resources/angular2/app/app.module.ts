@@ -10,6 +10,8 @@ import {ListingComponent} from "./components/listing.component";
 import {ControlsComponent} from "./components/controls.component";
 import {JsonKeyExtractPipe} from "./scripts/json-key-extract-pipe";
 import {ButtonComponent} from "./components/button.component";
+import {InlineEditorDirectives} from 'ng2-inline-editor';
+import { FORM_DIRECTIVES } from '@angular/common';
 
 @NgModule({
     imports: [
@@ -23,7 +25,9 @@ import {ButtonComponent} from "./components/button.component";
         ListingComponent,
         ControlsComponent,
         JsonKeyExtractPipe,
-        ButtonComponent
+        ButtonComponent,
+        InlineEditorDirectives,
+        FORM_DIRECTIVES
     ],
     bootstrap: [ AppComponent ]
 })

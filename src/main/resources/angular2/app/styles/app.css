@@ -62,3 +62,10 @@ h1, h2, h3, h4, h5, h6, .header-logo {
 .navbar-nav > li > a {
     color: #000000 !important;
 }
+:not(.ng-pristine).ng-valid[required] {
+    border-left: 5px solid #42A948; /* green */
+}
+
+:not(.ng-pristine).ng-invalid {
+    border-left: 5px solid #a94442; /* red */
+}

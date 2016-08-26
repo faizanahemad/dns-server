@@ -5,9 +5,5 @@ import { Component } from '@angular/core';
 })
 
 export class ControlsComponent {
-    start() {
-
-    }
-
 
 }

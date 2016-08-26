@@ -2,9 +2,11 @@ package io.faizan.model
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import java.util.regex.Pattern
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
+import io.faizan.Utils
 import io.faizan.model.RecordType.RecordType
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.{ProvenShape, TableQuery, Tag}
@@ -27,15 +29,12 @@ case class DnsRecord(domain: String,
                      dns: String,
                      @JsonScalaEnumeration(
                        classOf[RecordTypeType]) recordType: RecordType = RecordType.A,
-                     created_at: Option[LocalDateTime] = Option.empty,
-                     updated_at: Option[LocalDateTime] = Option
-                                                         .empty) extends IdentifiableRow[String] {
-  require(dns.length>=7&&dns.length<=15,"Invalid DNS Address passed to DnsRecord class")
-  require(dnsValidator,"Invalid DNS Address passed to DnsRecord class,  dns="+dns)
-  private def dnsValidator:Boolean = {
-    val dnsArray = dns.split("\\.").map(s=> Try(s.toInt).map(v=>v>=0&&v<=255).getOrElse(false))
-    dnsArray.length==4&&dnsArray.forall(_==true)
-  }
+                     createdAt: Option[LocalDateTime] = Option.empty,
+                     updatedAt: Option[LocalDateTime] = Option
+                                                        .empty) extends IdentifiableRow[String] {
+
+  require(Utils.domainPattern.matcher(domain).matches())
+  require(Utils.dnsPattern.matcher(dns).matches())
   def pk = domain
 }
 
@@ -83,7 +82,7 @@ class DnsRecords extends DAO[String, DnsRecord, DnsRecordTable] {
     val dbRecordsMap = dbRecords.map(r => (r.domain, r)).toMap
     val recordsToInsert = elements.map(el => {
       val dbr = dbRecordsMap.getOrElse(el.domain.trim, el)
-      dbr.copy(dns = el.dns.trim).copy(domain = dbr.domain.trim).copy(updated_at = Option(LocalDateTime.now()))
+      dbr.copy(dns = el.dns.trim).copy(domain = dbr.domain.trim).copy(updatedAt = Option(LocalDateTime.now()))
     })
     super.insertOrUpdate(recordsToInsert)
   }

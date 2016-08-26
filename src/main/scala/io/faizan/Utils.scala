@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import java.util
+import java.util.regex.Pattern
 import java.util.{Timer, TimerTask}
 
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
@@ -157,4 +158,7 @@ object Utils {
     }, delay)
     promise.future
   }
+
+  lazy val dnsPattern = Pattern.compile("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$")
+  lazy val domainPattern = Pattern.compile("^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\\.(?![-.]))*[a-zA-Z0-9]+)?)$")
 }

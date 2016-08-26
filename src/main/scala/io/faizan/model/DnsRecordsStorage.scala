@@ -21,20 +21,22 @@ class DnsRecordsStorage(implicit inj: Injector) extends Injectable {
               .build().asInstanceOf[Cache[String, ResourceRecordModifier]]
 
   def getIfPresent(domain: String): Option[ResourceRecordModifier] = {
-    val dnsAnswer = Option(cache.getIfPresent(domain))
+    val dmn = domain.toLowerCase
+    val dnsAnswer = Option(cache.getIfPresent(dmn))
     dnsAnswer match {
       case Some(x) => Some(x)
       case None =>
-        val storedValue = dnsMap.get(domain).map(Utils.convertToDns4s)
-        storedValue.foreach(s => cache.put(domain, s))
+        val storedValue = dnsMap.get(dmn).map(Utils.convertToDns4s)
+        storedValue.foreach(s => cache.put(dmn, s))
         storedValue
     }
   }
 
   def addEntries(entries: Map[String, DnsRecord]) = {
-    cache.invalidateAll(entries.keys.asJava)
-    val writeResults = dnsRecordsModel.write(entries)
-    val fetchedEntries = dnsRecordsModel.fetchByDomain(entries.keys)
+    val entriesIgnoreCase = entries.map(e=> e._1.toLowerCase->e._2.copy(domain=e._2.domain.toLowerCase))
+    cache.invalidateAll(entriesIgnoreCase.keys.asJava)
+    val writeResults = dnsRecordsModel.write(entriesIgnoreCase)
+    val fetchedEntries = dnsRecordsModel.fetchByDomain(entriesIgnoreCase.keys)
     dnsMap ++= fetchedEntries
     cache.putAll(fetchedEntries.map(e => (e._1, Utils.convertToDns4s(e._2))).asJava)
     writeResults

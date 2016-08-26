@@ -14,18 +14,31 @@ import org.json4s._
 import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.{read, write}
 
+import scala.Option
 import scala.concurrent.Future
+import scala.util.Left
 import scalaz.concurrent.Task
 
 class HttpServer{
 
   private var serverOptional = Option.empty[DnsServer]
 
+  def okJson(response:Any) = {
+    Ok(Utils.toJson(response))
+    .putHeaders(
+      `Content-Type`(`application/json`))
+  }
+
+  def okJson = {
+    Ok().putHeaders(
+      `Content-Type`(`application/json`))
+  }
+
   def startServer = if (serverOptional.isEmpty) {
     val server = new DnsServer(AppModule.getConfig)
     serverOptional = Option(server)
     serverOptional.foreach(_.start)
-    Ok(Utils.toJson(ServerStatus(ServerStatus.STARTING))).putHeaders(`Content-Type`(`application/json`))
+    okJson(ServerStatus(ServerStatus.STARTING))
   }
   else {
     MethodNotAllowed()
@@ -34,7 +47,7 @@ class HttpServer{
   def stopServer = {
     serverOptional.foreach(_.shutdown)
     serverOptional = Option.empty[DnsServer]
-    Ok(Utils.toJson(ServerStatus(ServerStatus.STOPPING))).putHeaders(`Content-Type`(`application/json`))
+    okJson(ServerStatus(ServerStatus.STOPPING))
   }
 
   def restartServer = {
@@ -46,7 +59,7 @@ class HttpServer{
     serverOptional
     .map(server => {
       server.dnsRecordsStore.refresh
-      Ok().putHeaders(`Content-Type`(`application/json`))
+      okJson
     })
     .getOrElse(BadRequest())
   }
@@ -54,8 +67,8 @@ class HttpServer{
   val configService = HttpService {
                                     case GET -> Root =>
                                       implicit val formats = Serialization.formats(NoTypeHints)
-                                      Ok(Utils.toJson(AppModule.getConfig))
-                                      .putHeaders(`Content-Type`(`application/json`))
+                                      okJson(AppModule.getConfig)
+
                                     case req@POST -> Root =>
                                       implicit val formats = Serialization.formats(NoTypeHints)
                                       req.as[String].map(body => {
@@ -64,19 +77,14 @@ class HttpServer{
                                         if (serverOptional.isDefined) {
                                           restartServer
                                         }
-                                        Ok().putHeaders(`Content-Type`(`application/json`))
+                                        okJson
                                       }).or(Task(BadRequest())).run
                                   }
   val adminService = HttpService {
                                    case GET -> Root / "status" =>
                                      implicit val formats = Serialization.formats(NoTypeHints)
-                                     serverOptional
-                                     .map(s => {
-                                       Ok(Utils.toJson(s.status.get()))
-                                       .putHeaders(`Content-Type`(`application/json`))
-                                     })
-                                     .getOrElse(Ok(Utils.toJson(ServerStatus(ServerStatus.STOPPED)))
-                                                .putHeaders(`Content-Type`(`application/json`)))
+                                     serverOptional.map(s => okJson(s.status.get()))
+                                     .getOrElse(okJson(ServerStatus(ServerStatus.STOPPED)))
 
                                    case GET -> Root / "stats" =>
                                      implicit val formats = Serialization.formats(NoTypeHints)
@@ -86,11 +94,10 @@ class HttpServer{
                                        val cacheEntries = "cache" -> s.dnsDetails.getCachedMap.size()
                                        val storedEntires = "store" -> s.dnsDetails.getDnsMap.size
                                        val response = Map(status,cacheEntries,storedEntires)
-                                       Ok(Utils.toJson(response))
-                                       .putHeaders(`Content-Type`(`application/json`))
+                                       okJson(response)
                                      })
-                                     .getOrElse(Ok(Utils.toJson(ServerStatus(ServerStatus.STOPPED)))
-                                                .putHeaders(`Content-Type`(`application/json`)))
+                                     .getOrElse(okJson(ServerStatus(ServerStatus.STOPPED)))
+
                                    case req@PUT -> Root / "start" =>
                                      startServer
                                    case req@PUT -> Root / "stop" =>
@@ -105,27 +112,46 @@ class HttpServer{
                                               stopServer
                                               Thread.sleep(2000)
                                             } onComplete ((u) => System.exit(0))
-                                     Ok(Utils.toJson(ServerStatus(ServerStatus.STOPPING)))
-                                     .putHeaders(`Content-Type`(`application/json`))
+                                     okJson(ServerStatus(ServerStatus.STOPPING))
                                  }
   val listingService = HttpService {
-                                     case GET -> Root =>
+                                     case req @ GET -> Root =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
-                                       serverOptional
-                                       .map(server => Ok(Utils.toJson(server.dnsDetails.getDnsMap))
-                                                      .putHeaders(
-                                                        `Content-Type`(`application/json`)))
-                                       .getOrElse(BadRequest())
+                                       val params = req.params.get _
 
-                                     case req @ GET -> Root / "search" =>
-                                       implicit val formats = Serialization.formats(NoTypeHints)
-                                       req.params.get("domain").filter(_.length>3).map(domain=> {
-                                         serverOptional
-                                         .map(server => Ok(Utils.toJson(server.dnsDetails.searchDnsMap(domain)))
-                                                        .putHeaders(
-                                                          `Content-Type`(`application/json`)))
-                                         .getOrElse(BadRequest())
-                                       }).getOrElse(BadRequest())
+                                       serverOptional.map(server => {
+                                         val dnsMap = params("domain") match {
+                                           case Some(dom) => Option(dom).filter(_.length>3).map(domain=>server.dnsDetails.searchDnsMap(domain).values.toArray)
+                                                             .getOrElse(Array[DnsRecord]())
+                                           case None => server.dnsDetails.getDnsMap.values.toArray
+                                         }
+
+                                         val sortedMap = params("sortby") match {
+                                           case Some(dom) =>
+                                             val order = params("order").getOrElse("asc")
+                                             val sortedEntries = dnsMap.sortWith((e1,e2)=> dom match {
+                                               case "domain"=>e1.domain.compareTo(e2.domain) < 0
+                                               case "created_at"=>e1.createdAt.get.compareTo(e2.createdAt.get) <0
+                                               case "updated_at"=>e1.updatedAt.get.compareTo(e2.updatedAt.get) <0
+                                               case _=>e1.domain.compareTo(e2.domain) < 0
+                                             })
+
+                                             if (order=="asc")
+                                               sortedEntries
+                                             else
+                                               sortedEntries.reverse
+
+                                           case _ => dnsMap
+                                         }
+                                         val sortedPaginatedMap = params("pageNumber") match {
+                                           case Some(page) =>
+                                             val pageSize = params("pageSize").getOrElse("10").toInt
+                                             sortedMap.slice((page.toInt -1)*pageSize,page.toInt*pageSize)
+                                           case _ => sortedMap
+                                         }
+                                         okJson(sortedPaginatedMap)
+                                       })
+                                       .getOrElse(BadRequest())
 
                                      case req@PUT -> Root =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
@@ -133,44 +159,33 @@ class HttpServer{
                                          val newCon = read[Map[String, DnsRecord]](body)
                                          serverOptional
                                          .map(server => {
-                                           if (server.dnsRecordsStore.addEntries(newCon)) {
-                                             Ok(Utils.toJson(server.dnsDetails.getDnsMap))
-                                             .putHeaders(`Content-Type`(`application/json`))
-                                           }
-                                           else {
-                                             BadRequest()
+                                           server.dnsRecordsStore.addEntries(newCon) match {
+                                             case true=>okJson(server.dnsDetails.getDnsMap)
+                                             case false=>BadRequest()
                                            }
                                          })
                                          .getOrElse(BadRequest())
                                        }).or(Task(BadRequest())).run
 
-                                     case req@DELETE -> Root =>
+                                     case req@DELETE -> Root / domain =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
-                                       req.as[String].map(body => {
-                                         val newCon = read[Array[String]](body)
-                                         serverOptional
-                                         .map(server => {
-                                           if (newCon.length > 0) {
-                                             if (server.dnsRecordsStore.removeEntries(newCon)) {
-                                               Ok(Utils.toJson(server.dnsDetails.getDnsMap))
-                                               .putHeaders(`Content-Type`(`application/json`))
-                                             }
-                                             else {
-                                               BadRequest()
-                                             }
+                                       serverOptional
+                                       .map(server => {
+                                         if (domain.length > 0) {
+                                           server.dnsRecordsStore.removeEntries(Array(domain)) match {
+                                             case true=>okJson(server.dnsDetails.getDnsMap)
+                                             case false=>BadRequest()
                                            }
-                                           else {
-                                             if (server.dnsRecordsStore.removeAllEntries()) {
-                                               Ok(Utils.toJson(server.dnsDetails.getDnsMap))
-                                               .putHeaders(`Content-Type`(`application/json`))
-                                             }
-                                             else {
-                                               BadRequest()
-                                             }
+                                         }
+                                         else {
+                                           server.dnsRecordsStore.removeAllEntries() match {
+                                             case true=>okJson(server.dnsDetails.getDnsMap)
+                                             case false=>BadRequest()
                                            }
-                                         })
-                                         .getOrElse(BadRequest())
-                                       }).or(Task(BadRequest())).run
+                                         }
+                                       })
+                                       .getOrElse(BadRequest())
+
                                    }
 
   def router: HttpService = Router(

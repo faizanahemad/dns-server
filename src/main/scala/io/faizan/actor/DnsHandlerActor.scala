@@ -39,7 +39,7 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
       val cache = dnsDetails.cache
       val res = ans map(answer=>{
         if (!answer.cached && answer.record.isDefined) {
-          cache.put(qname, answer.record.get)
+          cache.put(qname.toLowerCase, answer.record.get)
         }
         val records = answer.record.toList
         val resp = x.copy(header = header.copy(rcode = answer.rcode))
