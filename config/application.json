@@ -27,7 +27,6 @@
   "dnsConf": {
     "dnsResolver":"8.8.4.4",
     "maxEntries":32000,
-    "entryExpiryTime":120,
-    "port":53
+    "entryExpiryTime":120
   }
 }

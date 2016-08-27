@@ -15,6 +15,7 @@ import scaldi.Injectable
 
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
+import scala.util.Try
 
 class ServerStatusType extends TypeReference[ServerStatus.type]
 object ServerStatus extends Enumeration {
@@ -34,12 +35,12 @@ class DnsServer(config: Config) extends Injectable {
   var status = inject[Agent[ServerStatus]]
   lazy val dnsDetails = inject[DnsRecordsStorage]
   lazy val dnsRecordsStore = inject[DnsRecordsStorage]
+  val dnsPort = if (Try(System.getProperty("dev").toBoolean).getOrElse(false)) 5354 else 53
 
   def start = {
     val statusFuture = status.future().flatMap {
                                                  case ServerStatus(ServerStatus.NOT_STARTED) | ServerStatus(ServerStatus.STOPPED) =>
-                                                   manager ! Dns.Bind(dnsHandlerActor,
-                                                                      config.dnsConf.port)
+                                                   manager ! Dns.Bind(dnsHandlerActor, dnsPort)
                                                    status alter ServerStatus(ServerStatus.STARTING)
                                                }
 

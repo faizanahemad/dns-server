@@ -107,7 +107,6 @@ task fatCapsule(type: FatCapsule) {
     reallyExecutable
     capsuleManifest {
         systemProperties['logs'] = './logs'
-        systemProperties['dns.port'] = '53'
         minJavaVersion = '1.8.0'
     }
 }

@@ -23,17 +23,18 @@ object Main extends SuperUserApplication with ServerApp {
   splash.render("Checking Sudo/Root Permissions",10)
   val systemExit = (msg:String)=> {
     splash.render(msg,10)
-    Thread.sleep(sleepBase*2)
+    Thread.sleep(sleepBase*3)
     splash.stop()
     System.exit(1)
   }
-  val sudoNeeded = Option(System.getProperty("sudo")).forall(s=> Try(s.toBoolean).getOrElse(true))
+  val sudoNeeded = !Try(System.getProperty("dev").toBoolean).getOrElse(false)
   if (sudoNeeded && !isSuperUser) {
     systemExit("Sudo/Root Perms Not present. Exiting")
   }
 
   splash.render("Starting DNS Server",20)
   val httpServer = new HttpServer
+  val httpPort=if (Try(System.getProperty("dev").toBoolean).getOrElse(false)) 8080 else 80
 
   val dnsFuture = Future {
                            httpServer.startServer
@@ -62,14 +63,14 @@ object Main extends SuperUserApplication with ServerApp {
                                 f
                             }.after(1000 millisecond)
 
-    val startTask = BlazeBuilder.bindHttp(8080)
+    val startTask = BlazeBuilder.bindHttp(httpPort)
                     .mountService(httpServer.router).start.map(s => {
       dnsFuture.onComplete(v=>{
         splash.render("Pinging Server for Status",60)
         Try(afterRunCall.run).recover{
                                        case _=>systemExit("Unable to start. Terminating Program")
                                      }.map(f=>{
-          splash.render("Go to http://localhost:8080/",100)
+          splash.render("Go to http://localhost:%s/".format(httpPort),100)
           Thread.sleep(sleepBase*2)
           splash.stop()
         })
