@@ -1,0 +1,81 @@
+#listingRow {
+    overflow: scroll;
+    height: 400px;
+    padding: 2px 4px 2px 4px;
+    border-radius: 2px
+}
+
+tr:after {
+    content: ' ';
+    display: block;
+    visibility: hidden;
+    clear: both;
+}
+tbody {
+    height: 200px;
+    overflow-y: auto;
+}
+thead, tbody, td, th { display: block; }
+tr {
+    display: flex;
+}
+.table>tbody>tr>td{vertical-align: middle;}
+
+.domainHeader {
+    width: 16%;
+    float: left;
+}
+.dnsHeader {
+    width: 18%;
+    float: left;
+}
+.rtypeHeader {
+    width: 13%;
+    float: left;
+}
+.createdHeader {
+    width: 21.5%;
+    float: left;
+}
+.updatedHeader {
+    width: 21.5%;
+    float: left;
+}
+.removeHeader {
+    width: 10%;
+    float: left;
+}
+
+.domainColumn {
+    width: 16%;
+    float: left;
+    min-height: 56px;
+}
+.dnsColumn {
+    width: 18%;
+    float: left;
+    min-height: 56px;
+}
+.rtypeColumn {
+    width: 13%;
+    float: left;
+    min-height: 56px;
+}
+.createdColumn {
+    width: 21.5%;
+    float: left;
+    min-height: 56px;
+}
+.updatedColumn {
+    width: 21.5%;
+    float: left;
+    min-height: 56px;
+}
+.removeColumn {
+    width: 10%;
+    float: left;
+    min-height: 56px;
+}
+thead th {
+    height: 30px;
+}

@@ -21,15 +21,19 @@
         </div>
     </nav>
     <div class="row" style="padding-top: 65px;">
-        <div class="col-md-4" style="padding-left: 40px;">
+        <div class="col-md-2" style="padding-left: 40px;">
+
+        </div>
+        <div class="col-md-3">
             <div class="alert alert-warning"><p [ngClass]="{'text-success': running, 'text-danger': !running}" class="text-center "><i [ngClass]="{'fa-check-square': running, 'fa-exclamation-triangle': !running}" class="fa fa-fw fa-lg "></i><b>Status: {{ stats.status }} </b></p></div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="alert alert-info"><p class="text-center text-warning"><b>Cached Entries: {{ stats.cache }}</b></p></div>
         </div>
-        <div class="col-md-4" style="padding-right: 40px;">
+        <div class="col-md-3">
             <div class="alert alert-warning"><p class="text-center text-primary"><b>Stored Entries: {{ stats.store }}</b></p></div>
         </div>
+        <div class="col-md-1" style="padding-right: 40px;"></div>
     </div>
     <div class="row">
         <div class="container-fluid"><br></div>
@@ -41,10 +45,7 @@
             <controls style="font-weight: bold;font-family: Georgia;"></controls>
         </div>
         <div class="col-md-9">
-            <div id="listingRow" class="table-bordered"
-                 style="padding: 2px 4px 2px 4px; border-radius: 2px">
-                <listing-editor></listing-editor>
-            </div>
+            <listing-editor></listing-editor>
         </div>
 
         <div class="col-md-1" style="padding-right: 40px;"></div>

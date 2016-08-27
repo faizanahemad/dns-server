@@ -4,7 +4,8 @@ import {DnsRecord} from "../models/dnsrecord";
 import {Utils} from "../utils";
 @Component({
     selector: 'listing-editor',
-    templateUrl: 'angular2/app/components/listing.component.html'
+    templateUrl: 'angular2/app/components/listing.component.html',
+    styleUrls: ['angular2/app/styles/listing.component.css']
 })
 
 @Injectable()

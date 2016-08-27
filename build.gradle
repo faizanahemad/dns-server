@@ -21,7 +21,7 @@ sourceSets {
     main {
         resources {
             srcDirs = ["config","src/main/resources"]
-            includes = ["**/*.xml","**/*.json","**/*.gif","**/*.png","**/*.jpg","**/*.jpeg","**/*.jade","**/*.js","**/*.css","**/*.html","**/*.ts"]
+            includes = ["**/*.xml","**/*.json","**/*.gif","**/*.png","**/*.jpg","**/*.jpeg","**/*.eot","**/*.svg","**/*.ttf","**/*.woff","**/*.woff2","**/*.jade","**/*.js","**/*.css","**/*.html","**/*.ts"]
         }
     }
 }
