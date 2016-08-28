@@ -30,8 +30,7 @@ case class DnsRecord(domain: String,
                      @JsonScalaEnumeration(
                        classOf[RecordTypeType]) recordType: RecordType = RecordType.A,
                      createdAt: Option[LocalDateTime] = Option.empty,
-                     updatedAt: Option[LocalDateTime] = Option
-                                                        .empty) extends IdentifiableRow[String] {
+                     updatedAt: Option[LocalDateTime] = Option.empty) extends IdentifiableRow[String] {
 
   require(Utils.domainPattern.matcher(domain).matches())
   require(Utils.dnsPattern.matcher(dns).matches())
@@ -43,10 +42,7 @@ class DnsRecordTable(tag: Tag) extends IdentifiableTable[String, DnsRecord](tag,
                                                                                                   .compareTo(
                                                                                                     p2) < 0) {
 
-  implicit val javaLocalDateTimeMapper = MappedColumnType.base[LocalDateTime, Timestamp](
-    l => Timestamp.valueOf(l),
-    t => t.toLocalDateTime
-  )
+  implicit val javaLocalDateTimeMapper = DBConstants.javaLocalDateTimeMapper
 
   implicit val recordMapper = MappedColumnType.base[RecordType, String](
     e => e.toString,
@@ -56,7 +52,6 @@ class DnsRecordTable(tag: Tag) extends IdentifiableTable[String, DnsRecord](tag,
   def dns = column[String]("dns", SqlType("varchar(254) not null"))
 
   def record_type = column[RecordType]("record_type", O.Default(RecordType.A))
-
 
   def created_at = column[Option[LocalDateTime]]("created_at", SqlType(
     "timestamp not null default CURRENT_TIMESTAMP"))
@@ -78,11 +73,10 @@ class DnsRecords extends DAO[String, DnsRecord, DnsRecordTable] {
   override def findByPkInQuery(pk: Iterable[String]) = queryHelper.filter(_.pk inSet pk)
 
   override def insertOrUpdate(elements: Iterable[DnsRecord]): Int = {
-    val dbRecords = findByPkIn(elements.map(_.domain))
-    val dbRecordsMap = dbRecords.map(r => (r.domain, r)).toMap
+    val dbRecordsMap = findByPkIn(elements.map(_.domain))
     val recordsToInsert = elements.map(el => {
-      val dbr = dbRecordsMap.getOrElse(el.domain.trim, el)
-      dbr.copy(dns = el.dns.trim).copy(domain = dbr.domain.trim).copy(updatedAt = Option(LocalDateTime.now()))
+      val dbr = dbRecordsMap.getOrElse(el.domain, el)
+      dbr.copy(dns = el.dns,updatedAt = Option(LocalDateTime.now()))
     })
     super.insertOrUpdate(recordsToInsert)
   }

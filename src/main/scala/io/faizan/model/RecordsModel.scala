@@ -10,34 +10,18 @@ import io.faizan.config.Config
 import scaldi.{Injectable, Injector}
 
 
-abstract class DnsRecordsModel(implicit val inj: Injector) extends Injectable {
-  protected val conf = inject[Config]
-  protected val objectMapper = inject[ObjectMapper](identified by AppModuleSupport.objectMapper)
-
-  def fetchAll:Map[String,DnsRecord]
-  def fetchByDomain(entries:Iterable[String]):Map[String,DnsRecord]
-  def write(entries:Map[String,DnsRecord]):Boolean
-  def remove(entries:Iterable[String]):Boolean
+trait RecordsModel[PK,T<:IdentifiableRow[PK]] extends Injectable {
+  def fetchAll:Map[PK,T]
+  def findByPkIn(entries:Iterable[PK]):Map[PK,T]
+  def write(entries:Map[PK,T]):Boolean
+  def remove(entries:Iterable[PK]):Boolean
   def removeAll:Boolean
 
 }
 
-class DnsRecordsModelDB(implicit inj: Injector) extends DnsRecordsModel with Injectable {
-  protected val flatDnsRecords = inject[DnsRecords]
-  override def fetchAll:Map[String,DnsRecord] = {
-    flatDnsRecords.fetchAll.map(f=>(urlToDomainName(f.domain),f)).toMap
-  }
-
-  override def write(entries: Map[String, DnsRecord]): Boolean = flatDnsRecords.insertOrUpdate(entries.values) >0
-
-  override def remove(entries: Iterable[String]): Boolean = flatDnsRecords.deleteByPk(entries)>0
-
-  override def removeAll: Boolean = flatDnsRecords.deleteAll>0
-
-  override def fetchByDomain(entries: Iterable[String]): Map[String, DnsRecord] = flatDnsRecords.findByPkIn(entries).map(f=>(urlToDomainName(f.domain),f)).toMap
-}
-
-class DnsRecordsModelJson(implicit inj: Injector) extends DnsRecordsModel with Injectable {
+class DnsRecordsModelJson(implicit inj: Injector) extends RecordsModel[String,DnsRecord] {
+  protected val conf = inject[Config]
+  protected val objectMapper = inject[ObjectMapper](identified by AppModuleSupport.objectMapper)
   private val appConf = conf.application
   private def getJsonFlatConfig: JsonNode = {
     val dnsConfigFile = conf.application.dnsJsonFile
@@ -61,8 +45,20 @@ class DnsRecordsModelJson(implicit inj: Injector) extends DnsRecordsModel with I
 
   override def removeAll: Boolean = Utils.putJsonFileContents(appConf.dnsJsonFile,objectMapper.createObjectNode())
 
-  override def fetchByDomain(entries: Iterable[String]): Map[String, DnsRecord] = {
+  override def findByPkIn(entries: Iterable[String]): Map[String, DnsRecord] = {
     val entriesSet = entries.toSet
     fetchAll.filter(e=>entriesSet.contains(e._1))
   }
+}
+
+class RedirectRecordsModelJson extends RecordsModel[String,RedirectRecord] {
+  override def fetchAll: Map[String, RedirectRecord] = ???
+
+  override def findByPkIn(entries: Iterable[String]): Map[String, RedirectRecord] = ???
+
+  override def write(entries: Map[String, RedirectRecord]): Boolean = ???
+
+  override def remove(entries: Iterable[String]): Boolean = ???
+
+  override def removeAll: Boolean = ???
 }

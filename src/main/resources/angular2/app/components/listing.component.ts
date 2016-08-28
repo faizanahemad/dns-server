@@ -17,7 +17,7 @@ export class ListingComponent implements OnInit {
     records: DnsRecord[];
     newRecord:DnsRecord = new DnsRecord("","","A","","");
     active = true;
-    private listUrl: string = "/list";
+    private listUrl: string = "/server/list/dns";
 
     addRecord() {
         let payload: any = {};

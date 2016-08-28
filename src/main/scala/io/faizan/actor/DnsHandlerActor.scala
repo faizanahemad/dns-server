@@ -34,12 +34,12 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
     case x: Message =>
       val question = x.question.head
       val header = x.header
-      val qname = Utils.urlToDomainName(question.qname)
+      val qname = question.qname
       val ans = fetchDNSAnswer(qname,question)
-      val cache = dnsDetails.cache
+      val addToCache = dnsDetails.addToCache _
       val res = ans map(answer=>{
         if (!answer.cached && answer.record.isDefined) {
-          cache.put(qname.toLowerCase, answer.record.get)
+          addToCache(qname.toLowerCase, answer.record.get)
         }
         val records = answer.record.toList
         val resp = x.copy(header = header.copy(rcode = answer.rcode))
@@ -56,11 +56,9 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
 
   private def fetchDNSAnswer(qname: String, question: QuestionSection): Future[DnsAnswer] = {
     val dnsAnswer = dnsDetails.getIfPresent(qname)
-    if (dnsAnswer.isEmpty) {
-      fetchFromDNSResolver(question)
-    }
-    else {
-      Future(DnsAnswer(dnsAnswer, 0, true))
+    dnsAnswer match {
+      case Some(a)=>Future(DnsAnswer(dnsAnswer, 0, true))
+      case None=>fetchFromDNSResolver(question)
     }
   }
 

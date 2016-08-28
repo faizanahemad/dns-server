@@ -31,7 +31,7 @@ class AppModule(config: Config) extends Module {
   bind[ActorRef] identifiedBy dnsHandlerActor to system.actorOf(Props(new DnsHandlerActor)
                                                                 .withRouter(FromConfig()),
                                                                 "configBasedRouter")
-  bind[DnsRecordsStorage] to new DnsRecordsStorage
+
   bind[InetSocketAddress] identifiedBy dnsResolverAddress to new InetSocketAddress(
     config.dnsConf.dnsResolver, 53)
 }

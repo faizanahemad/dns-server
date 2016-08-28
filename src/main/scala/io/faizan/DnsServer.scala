@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 import com.github.mkroli.dns4s.akka.Dns
 import io.faizan.config.{Config, StorageMedium, StorageMediumType}
-import io.faizan.model.DnsRecordsStorage
+import io.faizan.model.{DnsRecordsStorage, RedirectRecordsStorage}
 import scaldi.Injectable
 
 import scala.concurrent.Await
@@ -33,8 +33,8 @@ class DnsServer(config: Config) extends Injectable {
   private val dnsHandlerActor = inject[ActorRef](identified by AppModuleSupport.dnsHandlerActor)
   private val manager = IO(Dns)
   var status = inject[Agent[ServerStatus]]
-  lazy val dnsDetails = inject[DnsRecordsStorage]
-  lazy val dnsRecordsStore = inject[DnsRecordsStorage]
+  val dnsRecordsStore = inject[DnsRecordsStorage]
+  val redirectRecordsStore = inject[RedirectRecordsStorage]
   val dnsPort = if (Try(System.getProperty("dev").toBoolean).getOrElse(false)) 5354 else 53
 
   def start = {

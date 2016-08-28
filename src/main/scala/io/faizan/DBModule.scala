@@ -13,10 +13,12 @@ class DBModule(config: Config) extends Module {
       Utils.createDb(config.dbConf)
       lazy val db = Database.forURL(config.dbConf.url, config.dbConf.properties)
       bind[Database] to db
-      bind[DnsRecords] to new DnsRecords
-      bind[DnsRecordsModel] to new DnsRecordsModelDB
+      bind[RecordsModel[String,DnsRecord]] to new DnsRecords
+      bind[RecordsModel[String,RedirectRecord]] to new RedirectRecords
     case StorageMedium.JSON=>
-      bind[DnsRecords] to new DnsRecords with MockDAO[String,DnsRecord, DnsRecordTable]
-      bind[DnsRecordsModel] to new DnsRecordsModelJson
+      bind[RecordsModel[String,DnsRecord]] to new DnsRecordsModelJson
+      bind[RecordsModel[String,RedirectRecord]] to new RedirectRecordsModelJson
   }
+  bind[DnsRecordsStorage] to new DnsRecordsStorage
+  bind[RedirectRecordsStorage] to new RedirectRecordsStorage
 }

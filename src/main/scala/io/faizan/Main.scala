@@ -50,7 +50,7 @@ object Main extends SuperUserApplication with ServerApp {
     splash.render("Starting Http Server",40)
 
 
-    val reqRunningStatus = GET(uri("http://localhost:8080/admin/status"))
+    val reqRunningStatus = GET(uri("http://localhost:8080/server/admin/status"))
     val afterRunCall = client.expect[String](reqRunningStatus)
                        .map((resp) => Utils.fromJson[ServerStatus](resp))
                        .map {
@@ -70,7 +70,7 @@ object Main extends SuperUserApplication with ServerApp {
         Try(afterRunCall.run).recover{
                                        case _=>systemExit("Unable to start. Terminating Program")
                                      }.map(f=>{
-          splash.render("Go to http://localhost:%s/".format(httpPort),100)
+          splash.render("Go to http://localhost:%s/server/ui".format(httpPort),100)
           Thread.sleep(sleepBase*2)
           splash.stop()
         })

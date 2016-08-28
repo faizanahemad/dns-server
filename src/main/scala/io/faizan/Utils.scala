@@ -43,9 +43,26 @@ object Utils {
     }
 
 
+  def dnsToSanitizedDns(dns:String):String = {
+    dns.toLowerCase.trim
+  }
+  def urlToRedirectUrl(url:String):String = {
+    val result = url.toLowerCase.trim
+    redirectUrlPattern.matcher(result).matches() match {
+      case true=>result
+      case false=> "http://"+result
+    }
+
+  }
   def urlToDomainName(qn: String): String = {
-    var qname = qn
-    if (qname.startsWith("http://")) {
+    var qname = qn.toLowerCase.trim
+    if (qname.endsWith(".")) {
+      qname = qname.substring(0, qname.length - 1)
+    }
+
+    if (qname.startsWith("www.")) {
+      qname = qname.substring(4)
+    } else if (qname.startsWith("http://")) {
       qname = qname.substring(7)
     }
     else if (qname.startsWith("https://")) {
@@ -57,12 +74,7 @@ object Utils {
     else if (qname.startsWith(".")) {
       qname = qname.substring(1)
     }
-    if (qname.startsWith("www.")) {
-      qname = qname.substring(4)
-    }
-    if (qname.endsWith(".")) {
-      qname = qname.substring(0, qname.length - 1)
-    }
+
     qname
   }
 
@@ -161,4 +173,5 @@ object Utils {
 
   lazy val dnsPattern = Pattern.compile("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$")
   lazy val domainPattern = Pattern.compile("^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\\.(?![-.]))*[a-zA-Z0-9]+)?)$")
+  lazy val redirectUrlPattern = Pattern.compile("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&amp;%\\$#_]*)?$")
 }
