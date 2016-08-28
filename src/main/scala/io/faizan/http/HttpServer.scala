@@ -1,23 +1,18 @@
 package io.faizan.http
 
-import com.github.mkroli.dns4s.dsl.ResourceRecordModifier
 import io.faizan.config.Config
-import io.faizan.model.{DnsRecord, IdentifiableRow, RecordsStorage, RedirectRecord}
+import io.faizan.model.{DnsRecord, RedirectRecord}
 import io.faizan.{AppModule, DnsServer, ServerStatus, Utils}
-import org.http4s.EntityEncoder._
 import org.http4s.MediaType._
-import org.http4s.{HttpService, _}
 import org.http4s.dsl._
 import org.http4s.headers.{Location, `Content-Type`}
-import org.http4s.server.blaze._
-import org.http4s.server.{Router, Server, ServerApp}
+import org.http4s.server.Router
+import org.http4s.{HttpService, _}
 import org.json4s._
 import org.json4s.jackson.Serialization
-import org.json4s.jackson.Serialization.{read, write}
+import org.json4s.jackson.Serialization.read
 
-import scala.Option
 import scala.concurrent.Future
-import scala.util.Left
 import scalaz.concurrent.Task
 
 class HttpServer{
@@ -39,6 +34,8 @@ class HttpServer{
     val server = new DnsServer(AppModule.getConfig)
     serverOptional = Option(server)
     serverOptional.foreach(_.start)
+    serverOptional.foreach(s=>s.dnsRecordsStore.addEntries(Map("l"->DnsRecord("l","127.0.0.1"),
+                                                               "f"->DnsRecord("f","127.0.0.1"))))
     okJson(ServerStatus(ServerStatus.STARTING))
   }
   else {
@@ -54,15 +51,6 @@ class HttpServer{
   def restartServer = {
     stopServer
     startServer
-  }
-
-  def refreshCache = {
-    serverOptional
-    .map(server => {
-      server.dnsRecordsStore.refresh
-      okJson
-    })
-    .getOrElse(BadRequest())
   }
 
   val configService = HttpService {
@@ -87,26 +75,10 @@ class HttpServer{
                                      serverOptional.map(s => okJson(s.status.get()))
                                      .getOrElse(okJson(ServerStatus(ServerStatus.STOPPED)))
 
-                                   case GET -> Root / "stats" =>
-                                     implicit val formats = Serialization.formats(NoTypeHints)
-                                     serverOptional
-                                     .map(s => {
-                                       val status = "status" -> s.status.get().status.toString
-                                       val cacheEntries = "cache" -> s.dnsRecordsStore.getCachedMap.size()
-                                       val storedEntires = "store" -> s.dnsRecordsStore.getStorageMap.size
-                                       val response = Map(status,cacheEntries,storedEntires)
-                                       okJson(response)
-                                     })
-                                     .getOrElse(okJson(ServerStatus(ServerStatus.STOPPED)))
-
                                    case req@PUT -> Root / "start" =>
                                      startServer
-                                   case req@PUT -> Root / "stop" =>
-                                     stopServer
                                    case req@PUT -> Root / "restart" =>
                                      restartServer
-                                   case req@PUT -> Root / "refresh" =>
-                                     refreshCache
                                    case req@PUT -> Root / "exit" =>
                                      import scala.concurrent.ExecutionContext.Implicits.global
                                      Future {
@@ -152,6 +124,13 @@ class HttpServer{
                                            case _ => sortedMap
                                          }
                                          okJson(sortedPaginatedMap)
+                                       })
+                                       .getOrElse(BadRequest())
+
+                                     case GET -> Root / "count" =>
+                                       serverOptional.map(server => {
+                                         val response = Map("count"->server.dnsRecordsStore.getStorageMap.size)
+                                         okJson(response)
                                        })
                                        .getOrElse(BadRequest())
 
@@ -230,6 +209,13 @@ class HttpServer{
                                        })
                                        .getOrElse(BadRequest())
 
+                                     case GET -> Root / "count" =>
+                                       serverOptional.map(server => {
+                                         val response = Map("count"->server.redirectRecordsStore.getStorageMap.size)
+                                         okJson(response)
+                                       })
+                                       .getOrElse(BadRequest())
+
                                      case req@PUT -> Root =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
                                        req.as[String].map(body => {
@@ -244,12 +230,12 @@ class HttpServer{
                                          .getOrElse(BadRequest())
                                        }).or(Task(BadRequest())).run
 
-                                     case req@DELETE -> Root / domain =>
+                                     case req@DELETE -> Root / requestUrl =>
                                        implicit val formats = Serialization.formats(NoTypeHints)
                                        serverOptional
                                        .map(server => {
-                                         if (domain.length > 0) {
-                                           server.redirectRecordsStore.removeEntries(Array(domain)) match {
+                                         if (requestUrl.length > 0) {
+                                           server.redirectRecordsStore.removeEntries(Array(requestUrl)) match {
                                              case true=>okJson(server.redirectRecordsStore.getStorageMap)
                                              case false=>BadRequest()
                                            }
@@ -299,7 +285,11 @@ class HttpServer{
       "/list/dns" -> dnsListingService,
       "/list/redirect" -> redirectListingService,
       "" -> UiRouter.resources,
-      "/ui" -> UiRouter.router
+      "/ui" -> UiRouter.router,
+      "/dns" -> UiRouter.router,
+      "/help" -> UiRouter.router,
+      "/settings" -> UiRouter.router,
+      "/redirect" -> UiRouter.router
     )
     Router(
       "/server" -> serverRouter,

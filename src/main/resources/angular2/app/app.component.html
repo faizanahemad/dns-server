@@ -3,38 +3,29 @@
         <div class="container">
             <ul class="nav navbar-nav navbar-set-link-padding-10px">
                 <div class="navbar-header">
-                    <a href="/ui">
-                        <div class="header-logo" style="display: block;">DNS<span class="italic"
-                                                                                  style="padding-left: 10px;">Server</span>
+                    <a href="/server/ui">
+                        <div class="header-logo" style="display: block;">SHO<i class="fa fa-minus" style="padding-left: 3px;"></i><span class="italic">RTT</span>
                         </div>
                         <div class="header-description hidden-xs hidden-sm hidden-md"
                              data-toggle="collapse"
-                             style="display: block;">DNS Server in Scala</div>
+                             style="display: block;"><i class="fa fa-fw fa-bookmark-o"></i>URL Shortner and <i class="fa fa-fw fa-anchor"></i>DNS Server in Scala</div>
                     </a>
                 </div>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <li><a class="button-font" href="/download">Download</a></li>
                 <li><a target="_blank" href="https://github.com/faizanahemad/dns-server"
-                       title="DNS Server at GitHub"><i class="fa fa-github fa-lg"></i></a></li>
+                       title="DNS Server at GitHub"><i class="fa fa-github fa-2x"></i></a></li>
             </ul>
         </div>
     </nav>
-    <div class="row" style="padding-top: 65px;">
-        <div class="col-md-2" style="padding-left: 40px;">
-
-        </div>
-        <div class="col-md-3">
-            <div class="alert alert-warning"><p [ngClass]="{'text-success': running, 'text-danger': !running}" class="text-center "><i [ngClass]="{'fa-check-square': running, 'fa-exclamation-triangle': !running}" class="fa fa-fw fa-lg "></i><b>Status: {{ stats.status }} </b></p></div>
-        </div>
-        <div class="col-md-3">
-            <div class="alert alert-info"><p class="text-center text-warning"><b>Cached Entries: {{ stats.cache }}</b></p></div>
-        </div>
-        <div class="col-md-3">
-            <div class="alert alert-warning"><p class="text-center text-primary"><b>Stored Entries: {{ stats.store }}</b></p></div>
-        </div>
-        <div class="col-md-1" style="padding-right: 40px;"></div>
-    </div>
+    <ul class="nav nav-tabs button-font" style="padding-top: 60px;">
+        <li routerLinkActive="active"><a routerLink="/ui"><i class="fa fa-home"></i> Home</a></li>
+        <li routerLinkActive="active"><a routerLink="/dns"><i class="fa fa-anchor"></i> DNS Server</a></li>
+        <li routerLinkActive="active"><a routerLink="/redirect"><i class="fa fa-bookmark-o"></i> URL Shortner</a></li>
+        <li routerLinkActive="active"><a routerLink="/help"><i class="fa fa-question-circle-o"></i> Help</a></li>
+        <li routerLinkActive="active"><a routerLink="/settings"><i class="fa fa-cog"></i> Settings</a></li>
+        <li class="pull-right"><span [ngClass]="{'text-success': running, 'text-danger': !running}" class="text-center "><i [ngClass]="{'fa-check-square': running, 'fa-exclamation-triangle': !running}" class="fa fa-fw fa-lg "></i><b>Status: {{ status }} </b></span></li>
+    </ul>
     <div class="row">
         <div class="container-fluid"><br></div>
     </div>
@@ -45,14 +36,9 @@
             <controls style="font-weight: bold;font-family: Georgia;"></controls>
         </div>
         <div class="col-md-9">
-            <listing-editor></listing-editor>
+            <router-outlet></router-outlet>
         </div>
 
         <div class="col-md-1" style="padding-right: 40px;"></div>
-    </div>
-
-
-    <div id="configRow">
-        <config-editor></config-editor>
     </div>
 </div>

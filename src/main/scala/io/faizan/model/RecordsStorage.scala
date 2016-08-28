@@ -82,12 +82,7 @@ abstract class RecordsStorage[PK:ClassTag,T<:IdentifiableRow[PK],V](implicit inj
     storageMap.filter(e=> searchComparator(key, e._1))
   }
 
-  def refresh = {
-    clearCached()
-    storageMap ++= recordsModel.fetchAll
-  }
-
-  refresh
+  storageMap ++= recordsModel.fetchAll
 }
 
 class DnsRecordsStorage(implicit inj: Injector) extends RecordsStorage[String,DnsRecord,ResourceRecordModifier] {

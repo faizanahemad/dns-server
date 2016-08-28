@@ -1,6 +1,6 @@
 #listingRow {
     overflow: scroll;
-    height: 70vh;
+    max-height: 75vh;
     padding: 2px 4px 2px 4px;
     border-radius: 2px
 }
@@ -12,7 +12,7 @@ tr:after {
     clear: both;
 }
 tbody {
-    height: 42vh;
+    max-height: 42vh;
     overflow-y: auto;
 }
 thead, tbody, td, th { display: block; }
@@ -73,6 +73,26 @@ tr {
 }
 .removeColumn {
     width: 10%;
+    float: left;
+    min-height: 56px;
+}
+
+.requestUrlHeader {
+    width: 21%;
+    float: left;
+}
+.redirectUrlHeader {
+    width: 26%;
+    float: left;
+}
+
+.requestUrlColumn {
+    width: 21%;
+    float: left;
+    min-height: 56px;
+}
+.redirectUrlColumn {
+    width: 26%;
     float: left;
     min-height: 56px;
 }

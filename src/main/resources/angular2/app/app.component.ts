@@ -10,16 +10,16 @@ import {stat} from "fs";
 })
 @Injectable()
 export class AppComponent implements OnInit {
-    stats: Stats = new Stats("STOPPED","NA","NA");
-    private url:string = "admin/stats";
-    private defaultStats:Stats = new Stats("STOPPED","NA","NA");
+    status: string = "STOPPED";
+    private url:string = "admin/status";
+    private defaultStats:string = "STOPPED";
     running:boolean = false;
     constructor(private http: Http) {}
-    private getStats() {
-        return Observable.interval(5000)
+    private getStatus() {
+        return Observable.interval(10000)
             .switchMap(() => this.http.get(this.url)).map((r: Response) => {
                 if (r.ok) {
-                    let stat = r.json() as Stats;
+                    let stat = r.json();
                     if (stat.status!="RUNNING") {
                         this.running = false;
                     } else {
@@ -31,9 +31,9 @@ export class AppComponent implements OnInit {
                     this.running = false;
                     return this.defaultStats;
                 }
-            }).subscribe(stat => this.stats = stat)
+            }).subscribe(stat => this.status = stat.status)
     }
     ngOnInit(){
-        this.getStats();
+        this.getStatus();
     }
 }

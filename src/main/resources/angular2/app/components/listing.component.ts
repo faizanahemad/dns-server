@@ -1,40 +1,35 @@
-import {Component, Injectable, OnInit} from "@angular/core";
 import {Http, Response} from "@angular/http";
-import {DnsRecord} from "../models/dnsrecord";
+import '../rxjs-extensions';
+import {Observable, Subscription} from 'rxjs/Rx';
 import {Utils} from "../utils";
-@Component({
-    selector: 'listing-editor',
-    templateUrl: 'angular2/app/components/listing.component.html',
-    styleUrls: ['angular2/app/styles/listing.component.css']
-})
 
-@Injectable()
-export class ListingComponent implements OnInit {
+export abstract class ListingComponent<T> {
 
-    constructor(private http: Http) {
+    constructor(public http: Http, public countUrl:string,public listUrl:string, public newInstance:T) {
     }
 
-    records: DnsRecord[];
-    newRecord:DnsRecord = new DnsRecord("","","A","","");
+    records: T[];
+    newRecord:T = Object.assign({},this.newInstance);
     active = true;
-    private listUrl: string = "/server/list/dns";
+    countSubscriber:Subscription;
 
-    addRecord() {
-        let payload: any = {};
-        payload[this.newRecord.domain] = this.newRecord;
-        this.http.put(this.listUrl,payload)
-            .map((r: Response) => r.ok)
-            .toPromise()
-            .then(response => {
-                if (response) {
-                    this.clearRecord();
-                    this.fetchRecords();
+    public count:string;
+
+    getCount() {
+        return Observable.interval(10000)
+            .switchMap(() => this.http.get(this.countUrl)).map((r: Response) => {
+                if (r.ok) {
+                    let cnt = r.json()["count"];
+                    return cnt;
                 }
-            }).catch(Utils.handleError);
+                else {
+                    return "NA"
+                }
+            }).subscribe(count => this.count = count)
     }
 
     clearRecord() {
-        this.newRecord = new DnsRecord("","","A","","");
+        this.newRecord = this.newInstance;
         this.active = false;
         setTimeout(() => this.active = true, 0);
     }
@@ -42,38 +37,21 @@ export class ListingComponent implements OnInit {
     fetchRecords() {
         this.http.get(this.listUrl)
             .toPromise()
-            .then(response => this.records = response.json() as DnsRecord[])
+            .then(response => this.records = response.json() as T[])
             .catch(Utils.handleError);
     }
 
-    removeRecord(record: DnsRecord, index: number) {
-        this.http.delete(this.listUrl+"/"+record.domain)
-            .map((r: Response) => r.ok)
-            .toPromise()
-            .then(response => {
-                if (response) {
-                    this.records.splice(index, 1);
-                }
-            }).catch(Utils.handleError);
-
-    }
-
-    editRecord(record: DnsRecord, index: number) {
-        var payload: any = {};
-        payload[record.domain] = record;
-        this.http.put(this.listUrl,payload)
-            .map((r: Response) => r.ok)
-            .toPromise()
-            .then(response => {
-                if (response) {
-                    this.records[index] = record;
-                }
-            }).catch(Utils.handleError);
-    }
-
-    trackByRecords(index: number, record: DnsRecord) { return record.domain; }
-
     ngOnInit() {
-        this.fetchRecords()
+        this.fetchRecords();
+        this.countSubscriber = this.getCount();
     }
+
+    ngOnDestroy() {
+        this.countSubscriber.unsubscribe();
+    }
+
+    abstract addRecord()
+    abstract removeRecord(record: T, index: number)
+    abstract editRecord(record: T, index: number)
+    abstract trackByRecords(index: number, record: T):string
 }

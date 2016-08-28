@@ -4,6 +4,7 @@ import java.util.concurrent.Executors
 
 import com.vnetpublishing.java.suapp.SuperUserApplication
 import io.faizan.http.HttpServer
+import org.http4s.Uri
 import org.http4s.client._
 import org.http4s.client.blaze.{defaultClient => client}
 import org.http4s.dsl._
@@ -50,7 +51,7 @@ object Main extends SuperUserApplication with ServerApp {
     splash.render("Starting Http Server",40)
 
 
-    val reqRunningStatus = GET(uri("http://localhost:8080/server/admin/status"))
+    val reqRunningStatus = GET(Uri.fromString("http://localhost:%s/server/admin/status".format(httpPort)).toOption.get)
     val afterRunCall = client.expect[String](reqRunningStatus)
                        .map((resp) => Utils.fromJson[ServerStatus](resp))
                        .map {
