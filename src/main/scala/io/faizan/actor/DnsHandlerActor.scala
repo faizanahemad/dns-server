@@ -29,6 +29,8 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
   val serverStatus = inject[Agent[ServerStatus]]
   val dnsResolverAddress = inject[InetSocketAddress](
     identified by AppModuleSupport.dnsResolverAddress)
+  val dnsResolverAddressSecondStage = inject[InetSocketAddress](
+    identified by AppModuleSupport.dnsResolverAddressSecondLevel)
 
   override def receive = {
     case x: Message =>
@@ -58,16 +60,23 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
     val dnsAnswer = dnsDetails.getIfPresent(qname)
     dnsAnswer match {
       case Some(a)=>Future(DnsAnswer(dnsAnswer, 0, true))
-      case None=>fetchFromDNSResolver(question)
+      case None=>fetchFromDNSResolver(question,dnsResolverAddress,true)
     }
   }
 
-  private def fetchFromDNSResolver(question: QuestionSection): Future[DnsAnswer] = {
+  private def fetchFromDNSResolver(question: QuestionSection,address: InetSocketAddress, resolveRecursive:Boolean): Future[DnsAnswer] = {
     implicit val timeout = Timeout(500 millisecond)
     implicit val system = context.system
-    val dnsRequest = Dns.DnsPacket(Query ~ Questions(question), dnsResolverAddress)
+    val dnsRequest = Dns.DnsPacket(Query ~ Questions(question), address)
     val dnsResponseFuture = IO(Dns) ? dnsRequest
-    dnsResponseFuture.map(r => DnsHandlerActor.getDnsAnswerFromResponse(r.asInstanceOf[Message]))
+    dnsResponseFuture.flatMap(r=>{
+      val resp = r.asInstanceOf[Message]
+      if (resp.header.rcode != 0 && resp.header.rcode != 1 && resolveRecursive) {
+        fetchFromDNSResolver(question,dnsResolverAddressSecondStage,false)
+      } else {
+        Future( DnsHandlerActor.getDnsAnswerFromResponse(resp))
+      }
+    })
   }
 
 

@@ -34,6 +34,8 @@ class AppModule(config: Config) extends Module {
 
   bind[InetSocketAddress] identifiedBy dnsResolverAddress to new InetSocketAddress(
     config.dnsConf.dnsResolver, 53)
+  bind[InetSocketAddress] identifiedBy dnsResolverAddressSecondLevel to new InetSocketAddress(
+    config.dnsConf.dnsResolverSecondLevel, 53)
 }
 
 object AppModule {
@@ -67,4 +69,5 @@ object AppModuleSupport {
   val dnsMapName = "'DnsMap"
   val objectMapper = "'CAMEL_OBJECT_MAPPER"
   val dnsResolverAddress = "'DnsResolver"
+  val dnsResolverAddressSecondLevel = "'DnsResolverSecondLevel"
 }

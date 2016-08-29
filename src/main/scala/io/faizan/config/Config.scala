@@ -39,7 +39,7 @@ case class DBConfig(user:String
                                       "rewriteBatchedStatements"->"true")
 }
 @JsonIgnoreProperties(Array("timeUnit","port","dnsPort"))
-case class DNSConfig(dnsResolver:String, maxEntries:Int, entryExpiryTime:Int) {
+case class DNSConfig(dnsResolver:String,dnsResolverSecondLevel:String, maxEntries:Int, entryExpiryTime:Int) {
   val timeUnit  = TimeUnit.MINUTES
 }
 @JsonIgnoreProperties(Array("defaultConfDir"))

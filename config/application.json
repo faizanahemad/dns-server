@@ -26,6 +26,7 @@
   },
   "dnsConf": {
     "dnsResolver":"8.8.4.4",
+    "dnsResolverSecondLevel":"8.8.4.4",
     "maxEntries":32000,
     "entryExpiryTime":120
   }
