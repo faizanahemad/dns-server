@@ -2,6 +2,7 @@ package io.faizan.model
 
 import java.util
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.github.mkroli.dns4s.dsl.{ARecord, RRName, ResourceRecordModifier}
 import io.faizan.Utils._
@@ -29,9 +30,8 @@ class DnsRecordsModelJson(implicit inj: Injector) extends RecordsModel[String,Dn
   }
   def fetchAll:Map[String,DnsRecord] = {
     val node = getJsonFlatConfig
-    val parsedDnsRecords = objectMapper.convertValue(node, classOf[Map[String, String]])
-                           .map(e => (urlToDomainName(e._1), e._2)).map(e=>(e._1,DnsRecord(e._1,e._2)))
-    parsedDnsRecords
+    val typereference = new TypeReference[Map[String, DnsRecord]] {}
+    objectMapper.convertValue(node, typereference)
   }
   override def write(entries: Map[String, DnsRecord]): Boolean = {
     val finalMap = fetchAll ++ entries
@@ -52,13 +52,13 @@ class DnsRecordsModelJson(implicit inj: Injector) extends RecordsModel[String,Dn
 }
 
 class RedirectRecordsModelJson extends RecordsModel[String,RedirectRecord] {
-  override def fetchAll: Map[String, RedirectRecord] = ???
+  override def fetchAll: Map[String, RedirectRecord] = Map()
 
-  override def findByPkIn(entries: Iterable[String]): Map[String, RedirectRecord] = ???
+  override def findByPkIn(entries: Iterable[String]): Map[String, RedirectRecord] = Map()
 
-  override def write(entries: Map[String, RedirectRecord]): Boolean = ???
+  override def write(entries: Map[String, RedirectRecord]): Boolean = true
 
-  override def remove(entries: Iterable[String]): Boolean = ???
+  override def remove(entries: Iterable[String]): Boolean = true
 
-  override def removeAll: Boolean = ???
+  override def removeAll: Boolean = true
 }

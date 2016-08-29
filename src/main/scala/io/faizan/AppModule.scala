@@ -11,7 +11,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import io.faizan.actor.DnsHandlerActor
-import io.faizan.config.Config
+import io.faizan.config.{Config, ConfigDto}
 import io.faizan.model.DnsRecordsStorage
 import scaldi.{Module, MutableInjectorAggregation}
 
@@ -43,7 +43,7 @@ object AppModule {
 
   def getConfig = Config.getConfig
 
-  def setConfig(config: Config) = Config.setConfig(config)
+  def setConfig(config: ConfigDto) = Config.setConfig(config)
 
   def getCurrentInjector: MutableInjectorAggregation = {
     injector.get

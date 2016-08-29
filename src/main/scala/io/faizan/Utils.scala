@@ -8,10 +8,15 @@ import java.util.regex.Pattern
 import java.util.{Timer, TimerTask}
 
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
-import com.github.mkroli.dns4s.dsl.{ARecord, RRName, ResourceRecordModifier}
+import com.github.mkroli.dns4s.{Message, MessageBuffer}
+import com.github.mkroli.dns4s.dsl.{ARecord, Answers, RRName, ResourceRecordModifier, Response}
+import com.github.mkroli.dns4s.Message
+import com.github.mkroli.dns4s.akka.Dns
+import com.github.mkroli.dns4s.dsl.{ARecord, _}
+import com.github.mkroli.dns4s.section.QuestionSection
 import com.google.common.base.CharMatcher
 import io.faizan.config.DBConfig
-import io.faizan.model.DnsRecord
+import io.faizan.model.{DnsRecord, RecordType}
 import org.apache.commons.io.{FileUtils, IOUtils}
 import slick.jdbc.MySQLProfile.api._
 
@@ -154,11 +159,15 @@ object Utils {
     records
   }
 
-  def convertToDns4s(entry: DnsRecord):ResourceRecordModifier = {
-    if (entry !=null)
-      RRName(Utils.urlToDomainName(entry.domain)) ~ ARecord(entry.dns)
-    else
-      null
+  def convertToDns4s(entry: DnsRecord):ComposableMessage = {
+    val q = entry.recordType match {
+      case RecordType.A=>QuestionSection(entry.domain,1,1)
+      case RecordType.AAAA=>QuestionSection(entry.domain,28,1)
+      case RecordType.CNAME=>QuestionSection(entry.domain,5,1)
+      case RecordType.DNAME=>QuestionSection(entry.domain,39,1)
+    }
+    val rr=RRName(entry.domain) ~ ARecord(entry.dns)
+    Message(MessageBuffer()).copy(question = Seq(q)) ~ Answers(rr)
   }
   def delay[T](delay: Long)(block: => T): Future[T] = {
     val promise = Promise[T]()

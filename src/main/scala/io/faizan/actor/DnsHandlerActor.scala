@@ -22,7 +22,7 @@ import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class DnsAnswer(record: Option[ResourceRecordModifier], rcode: Int, cached:Boolean)
+case class DnsAnswer(record: Message, rcode: Int, cached:Boolean)
 
 class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
   val dnsDetails = inject[DnsRecordsStorage]
@@ -40,13 +40,11 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
       val ans = fetchDNSAnswer(qname,question)
       val addToCache = dnsDetails.addToCache _
       val res = ans map(answer=>{
-        if (!answer.cached && answer.record.isDefined) {
-          addToCache(qname.toLowerCase, answer.record.get)
+        val rd=answer.record.copy(header = header.copy(rcode = answer.rcode, qr = true)) ~ Answers()
+        if (!answer.cached && answer.rcode==0) {
+          addToCache(qname,rd)
         }
-        val records = answer.record.toList
-        val resp = x.copy(header = header.copy(rcode = answer.rcode))
-        val answers = Answers(records: _*)
-        Response(resp) ~ answers
+        rd
       })
       res pipeTo sender
     case Dns.Bound =>
@@ -59,7 +57,7 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
   private def fetchDNSAnswer(qname: String, question: QuestionSection): Future[DnsAnswer] = {
     val dnsAnswer = dnsDetails.getIfPresent(qname)
     dnsAnswer match {
-      case Some(a)=>Future(DnsAnswer(dnsAnswer, 0, true))
+      case Some(a)=>Future(DnsAnswer(a, 0, true))
       case None=>fetchFromDNSResolver(question,dnsResolverAddress,true)
     }
   }
@@ -74,21 +72,10 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
       if (resp.header.rcode != 0 && resp.header.rcode != 1 && resolveRecursive) {
         fetchFromDNSResolver(question,dnsResolverAddressSecondStage,false)
       } else {
-        Future( DnsHandlerActor.getDnsAnswerFromResponse(resp))
+        Future( DnsAnswer(resp, resp.header.rcode, false))
       }
     })
   }
 
 
-}
-
-object DnsHandlerActor {
-  def getDnsAnswerFromResponse(dnsResponse: Message): DnsAnswer = {
-    var result: Option[ResourceRecordModifier] = Option.empty
-    if (dnsResponse.header.rcode == 0) {
-      result = Option(RRName(dnsResponse.question.head.qname) ~ ARecord(
-        dnsResponse.answer.head.rdata.asInstanceOf[AResource].address))
-    }
-    DnsAnswer(result, dnsResponse.header.rcode, false)
-  }
 }

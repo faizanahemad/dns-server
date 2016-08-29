@@ -1,6 +1,6 @@
 package io.faizan.model
 
-import com.github.mkroli.dns4s.dsl.ResourceRecordModifier
+import com.github.mkroli.dns4s.dsl.{ComposableMessage, ResourceRecordModifier}
 import com.google.common.cache.{Cache, CacheBuilder}
 import io.faizan.Utils
 import io.faizan.config.Config
@@ -85,12 +85,12 @@ abstract class RecordsStorage[PK:ClassTag,T<:IdentifiableRow[PK],V](implicit inj
   storageMap ++= recordsModel.fetchAll
 }
 
-class DnsRecordsStorage(implicit inj: Injector) extends RecordsStorage[String,DnsRecord,ResourceRecordModifier] {
+class DnsRecordsStorage(implicit inj: Injector) extends RecordsStorage[String,DnsRecord,ComposableMessage] {
 
   override protected def recordsModel: RecordsModel[String, DnsRecord] = inject[RecordsModel[String,DnsRecord]]
 
 
-  override protected def convertStoredEntry(entry: DnsRecord): ResourceRecordModifier = Utils.convertToDns4s(sanitizeInputValue(entry))
+  override protected def convertStoredEntry(entry: DnsRecord): ComposableMessage = Utils.convertToDns4s(sanitizeInputValue(entry))
 
   override protected def searchComparator(searchKey: String,
                                 storedMapKey: String): Boolean = storedMapKey.contains(searchKey)

@@ -1,6 +1,6 @@
 package io.faizan.http
 
-import io.faizan.config.Config
+import io.faizan.config.{Config, ConfigDto}
 import io.faizan.model.{DnsRecord, RedirectRecord}
 import io.faizan.{AppModule, DnsServer, ServerStatus, Utils}
 import org.http4s.MediaType._
@@ -61,7 +61,7 @@ class HttpServer{
                                     case req@POST -> Root =>
                                       implicit val formats = Serialization.formats(NoTypeHints)
                                       req.as[String].map(body => {
-                                        val newCon = Utils.fromJson[Config](body)
+                                        val newCon = Utils.fromJson[ConfigDto](body)
                                         AppModule.setConfig(newCon)
                                         if (serverOptional.isDefined) {
                                           restartServer

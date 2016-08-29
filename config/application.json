@@ -1,6 +1,7 @@
 {
   "application":{
-    "dnsJsonFile":"./config/dnsFlat.json",
+    "dnsJsonFile":"~/.dnsserver/dns.json",
+    "urlShortnerJsonFile":"~/.dnsserver/shortner.json",
     "storageMedium":"JSON"
   },
   "dbConf":{
@@ -29,5 +30,6 @@
     "dnsResolverSecondLevel":"8.8.4.4",
     "maxEntries":32000,
     "entryExpiryTime":120
-  }
+  },
+  "firstStart":false
 }

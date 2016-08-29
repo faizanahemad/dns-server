@@ -18,7 +18,7 @@ object StorageMedium extends Enumeration {
   val JSON,MYSQLDB = Value
 }
 class StorageMediumType extends TypeReference[StorageMedium.type]
-@JsonIgnoreProperties(Array("properties","driver","numThreads"))
+@JsonIgnoreProperties(Array("properties","driver","numThreads","connectionPool","keepAliveConnection"))
 case class DBConfig(user:String
                     , password:String
                     , url:String
@@ -38,41 +38,57 @@ case class DBConfig(user:String
                                       "useSSL"->"false",
                                       "rewriteBatchedStatements"->"true")
 }
-@JsonIgnoreProperties(Array("timeUnit","port","dnsPort"))
+@JsonIgnoreProperties(Array("timeUnit"))
 case class DNSConfig(dnsResolver:String,dnsResolverSecondLevel:String, maxEntries:Int, entryExpiryTime:Int) {
   val timeUnit  = TimeUnit.MINUTES
 }
 @JsonIgnoreProperties(Array("defaultConfDir"))
-case class ApplicationConfig(var dnsJsonFile:String,@JsonScalaEnumeration(classOf[StorageMediumType]) storageMedium:StorageMedium.Value) {
+case class ApplicationConfig(var dnsJsonFile:String,var urlShortnerJsonFile:String,@JsonScalaEnumeration(classOf[StorageMediumType]) storageMedium:StorageMedium.Value) {
+  dnsJsonFile = dnsJsonFile.replaceFirst("^~",System.getProperty("user.home"))
+  urlShortnerJsonFile = urlShortnerJsonFile.replaceFirst("^~",System.getProperty("user.home"))
   val defaultConfDir = Config.defaultConfDir
   Files.createDirectories(defaultConfDir)
-  if(!Utils.checkUrlValidity(dnsJsonFile)) {
-    val configuredFilePath = Paths.get(dnsJsonFile)
-    Try(Files.createFile(configuredFilePath)).recover{
-                                                       case e:Exception=>
-                                                         val dnsFilePath = Paths.get(defaultConfDir.toString,"dnsJsonFile.json")
-                                                         val flatFile = dnsFilePath.toFile
-                                                         if (!flatFile.exists()) {
-                                                           val createdFile = Files.createFile(dnsFilePath)
-                                                           dnsJsonFile = createdFile.toString
-                                                           createdFile
+  def createIfNotExistsDataFile(filename:String, defaultFileName:String): String = {
+    if(!Utils.checkUrlValidity(filename)) {
+      val configuredFilePath = Paths.get(filename)
+      Try(Files.createFile(configuredFilePath).toString).recover{
+                                                         case e:Exception=>
+                                                           val dnsFilePath = Paths.get(defaultConfDir.toString,defaultFileName)
+                                                           val flatFile = dnsFilePath.toFile
+                                                           if (!flatFile.exists()) {
+                                                             val createdFile = Files.createFile(dnsFilePath)
+                                                             createdFile.toString
                                                            } else {
-                                                           dnsJsonFile = flatFile.toString
-                                                           dnsFilePath
-                                                         }
-                                                     }
+                                                             flatFile.toString
+                                                           }
+                                                       }.get
+    } else {
+      filename
+    }
   }
+  dnsJsonFile = createIfNotExistsDataFile(dnsJsonFile,"dns.json")
+  urlShortnerJsonFile = createIfNotExistsDataFile(urlShortnerJsonFile,"shortner.json")
 }
 @JsonIgnoreProperties(Array("config"))
-case class Config(application: ApplicationConfig, dbConf:DBConfig, dnsConf:DNSConfig, config:com.typesafe.config.Config) {
-  def this(appConf: ApplicationConfig,dbConf:DBConfig, dnsConfig:DNSConfig) {
-    this(appConf, dbConf, dnsConfig, Config.readConfig)
+case class Config(application: ApplicationConfig, dbConf:DBConfig, dnsConf:DNSConfig, firstStart:Boolean, config:com.typesafe.config.Config) {
+  def this(appConf: ApplicationConfig,dbConf:DBConfig, dnsConfig:DNSConfig,firstStart:Boolean) {
+    this(appConf, dbConf, dnsConfig,firstStart, Config.readConfig)
   }
 }
 object Config {
   val defaultConfDir = Paths.get(System.getProperty("user.home") + File.separator + ".dnsserver")
-  val configFile = Paths.get(defaultConfDir.toString,"application.json").toFile
+  val configFilePath = Paths.get(defaultConfDir.toString,"application.json")
+  val configFile = configFilePath.toFile
   var config =Option.empty[Config]
+
+  private def initialiseConfigDir = {
+    val default:com.typesafe.config.Config=ConfigFactory.load()
+    val firstTime = !configFile.exists()
+    if (firstTime) {
+      Try(Files.createFile(configFilePath))
+      Utils.putJsonFileContents(configFile,getConfigFromTypeSafeConfig(default).copy(firstStart = true))
+    }
+  }
   protected def readConfig = {
     ConfigFactory.invalidateCaches()
     val default:com.typesafe.config.Config=ConfigFactory.load()
@@ -80,25 +96,41 @@ object Config {
     val cfg = fileConfig.withFallback(default)
     cfg
   }
-  protected def saveConfig(conf: Config) = {
+  private def saveConfig(conf: Config) = {
     Utils.putJsonFileContents(configFile,conf)
   }
   def getConfig = {
-    if (config.isEmpty) {
-      getNewConfig
-    }
+    config.getOrElse(getNewConfig)
+  }
+  private def getNewConfig = {
+    val cfg = readConfig
+    config = Option(getConfigFromTypeSafeConfig(cfg))
     config.get
   }
-  def getNewConfig = {
-    val cfg = readConfig
+
+  private def getConfigFromTypeSafeConfig(cfg:com.typesafe.config.Config):Config = {
     val dbConf :DBConfig=cfg.get[DBConfig]("dbConf").value
     val dnsConf = cfg.get[DNSConfig]("dnsConf").value
     val applicationConfig = cfg.get[ApplicationConfig]("application").value
-    config = Option(Config(applicationConfig,dbConf,dnsConf,cfg))
-    config.get
+    val firstStart = cfg.get[Boolean]("firstStart").value
+    Config(applicationConfig,dbConf,dnsConf,firstStart,cfg)
   }
-  def setConfig(conf: Config) = {
-    saveConfig(conf)
+  def setConfig(nconf: ConfigDto) = {
+    val currentConfig = config.get
+    val configToSave = copyIgnoreNullConfig(currentConfig,nconf)
+    saveConfig(configToSave)
     config = Option(getNewConfig)
   }
+
+  private def copyIgnoreNullConfig(oldConf: Config, newConf: ConfigDto):Config = {
+    val napp =  newConf.application
+    val ndb = newConf.dbConf
+    val ndns = newConf.dnsConf
+    oldConf.copy(application = oldConf.application.copy(napp.dnsJsonFile,napp.urlShortnerJsonFile,napp.storageMedium))
+    .copy(dbConf = oldConf.dbConf.copy(ndb.user,ndb.password,ndb.url,ndb.dBName))
+    .copy(dnsConf = oldConf.dnsConf.copy(ndns.dnsResolver,ndns.dnsResolverSecondLevel,ndns.maxEntries,ndns.entryExpiryTime))
+    .copy(firstStart = newConf.firstStart)
+  }
+
+  initialiseConfigDir
 }
