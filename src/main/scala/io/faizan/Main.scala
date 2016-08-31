@@ -29,13 +29,17 @@ object Main extends SuperUserApplication with ServerApp {
     System.exit(1)
   }
   val sudoNeeded = !Try(System.getProperty("dev").toBoolean).getOrElse(false)
-  if (sudoNeeded && !isSuperUser) {
+  var httpPort=8080
+  val sudoAllowed = isSuperUser
+  if (sudoNeeded && !sudoAllowed) {
     systemExit("Sudo/Root Perms Not present. Exiting")
+  } else if(sudoAllowed) {
+    httpPort = 80
+    new SetDefaultDns().setDnsToLocalHost()
   }
 
   splash.render("Starting DNS Server",20)
   val httpServer = new HttpServer
-  val httpPort=if (Try(System.getProperty("dev").toBoolean).getOrElse(false)) 8080 else 80
 
   val dnsFuture = Future {
                            httpServer.startServer

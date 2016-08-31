@@ -13,12 +13,19 @@ import {InlineEditorDirectives} from 'ng2-inline-editor';
 import { FORM_DIRECTIVES } from '@angular/common';
 import { routing, appRoutingProviders } from './app.routing';
 import {HelpComponent} from "./components/help.component";
+import { AlertComponent } from 'ng2-bootstrap/components/alert';
+import { ModalModule } from 'angular2-modal';
+import { BootstrapModalModule } from 'angular2-modal/plugins/bootstrap/index';
+import { FirstUseModal} from "./components/modals/first-use-modal";
+import {ConfigService} from "./services/config.service";
 
 @NgModule({
     imports: [
         BrowserModule,
         FormsModule,
         HttpModule,
+        ModalModule.forRoot(),
+        BootstrapModalModule,
         routing
     ],
     declarations: [
@@ -26,14 +33,16 @@ import {HelpComponent} from "./components/help.component";
         ConfigComponent,
         ControlsComponent,
         HelpComponent,
+        AlertComponent,
         JsonKeyExtractPipe,
         ButtonComponent,
         InlineEditorDirectives,
         FORM_DIRECTIVES
     ],
     providers: [
-        appRoutingProviders
+        appRoutingProviders,ConfigService
     ],
-    bootstrap: [ AppComponent ]
+    bootstrap: [ AppComponent ],
+    entryComponents: [ FirstUseModal ]
 })
 export class AppModule { }

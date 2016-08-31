@@ -20,16 +20,33 @@ trait RecordsModel[PK,T<:IdentifiableRow[PK]] extends Injectable {
 
 }
 
-class DnsRecordsModelJson(implicit inj: Injector) extends RecordsModel[String,DnsRecord] {
-  protected val conf = inject[Config]
+abstract class RecordsModelJson[PK,T<:IdentifiableRow[PK]](implicit inj: Injector) extends RecordsModel[PK,T] with Injectable {
   protected val objectMapper = inject[ObjectMapper](identified by AppModuleSupport.objectMapper)
-  private val appConf = conf.application
-  private def getJsonFlatConfig: JsonNode = {
-    val dnsConfigFile = conf.application.dnsJsonFile
-    Utils.getJsonFileContents(dnsConfigFile)
+  def jsonFile:String
+  override def write(entries: Map[PK,T]): Boolean = {
+    val finalMap = fetchAll ++ entries
+    Utils.putJsonFileContents(jsonFile,finalMap)
   }
-  def fetchAll:Map[String,DnsRecord] = {
-    val node = getJsonFlatConfig
+
+  override def remove(entries: Iterable[PK]): Boolean = {
+    val finalMap = fetchAll -- entries
+    Utils.putJsonFileContents(jsonFile,finalMap)
+  }
+
+  override def removeAll: Boolean = Utils.putJsonFileContents(jsonFile,objectMapper.createObjectNode())
+
+  override def findByPkIn(entries: Iterable[PK]): Map[PK,T] = {
+    val entriesSet = entries.toSet
+    fetchAll.filter(e=>entriesSet.contains(e._1))
+  }
+}
+
+class DnsRecordsModelJson(implicit inj: Injector) extends RecordsModel[String,DnsRecord] {
+  private val conf = inject[Config]
+  private val objectMapper = inject[ObjectMapper](identified by AppModuleSupport.objectMapper)
+  private val appConf = conf.application
+  override def fetchAll:Map[String,DnsRecord] = {
+    val node = Utils.getJsonFileContents(conf.application.dnsJsonFile)
     val typereference = new TypeReference[Map[String, DnsRecord]] {}
     objectMapper.convertValue(node, typereference)
   }
@@ -51,14 +68,13 @@ class DnsRecordsModelJson(implicit inj: Injector) extends RecordsModel[String,Dn
   }
 }
 
-class RedirectRecordsModelJson extends RecordsModel[String,RedirectRecord] {
-  override def fetchAll: Map[String, RedirectRecord] = Map()
-
-  override def findByPkIn(entries: Iterable[String]): Map[String, RedirectRecord] = Map()
-
-  override def write(entries: Map[String, RedirectRecord]): Boolean = true
-
-  override def remove(entries: Iterable[String]): Boolean = true
-
-  override def removeAll: Boolean = true
+class RedirectRecordsModelJson(implicit inj: Injector) extends RecordsModelJson[String,RedirectRecord] {
+  private val conf = inject[Config]
+  private val appConf = conf.application
+  override def fetchAll: Map[String, RedirectRecord] = {
+    val node = Utils.getJsonFileContents(jsonFile)
+    val typereference = new TypeReference[Map[String, RedirectRecord]] {}
+    objectMapper.convertValue(node, typereference)
+  }
+  override def jsonFile: String = appConf.urlShortnerJsonFile
 }

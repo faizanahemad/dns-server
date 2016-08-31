@@ -27,6 +27,7 @@ case class DBConfig(user:String
                     , connectionPool:String
                     , keepAliveConnection:Boolean
                     , numThreads:Int) {
+  require(Utils.alphaNumericUnderscoreRegex.matcher(dBName).matches())
   val properties = Map[String,String]("user"->user,
                                       "password"->password,
                                       "url"->url,
@@ -40,13 +41,18 @@ case class DBConfig(user:String
 }
 @JsonIgnoreProperties(Array("timeUnit"))
 case class DNSConfig(dnsResolver:String,dnsResolverSecondLevel:String, maxEntries:Int, entryExpiryTime:Int) {
+  require(Utils.dnsPattern.matcher(dnsResolver).matches())
+  require(Utils.dnsPattern.matcher(dnsResolverSecondLevel).matches())
   val timeUnit  = TimeUnit.MINUTES
 }
-@JsonIgnoreProperties(Array("defaultConfDir"))
+@JsonIgnoreProperties(Array("defaultConfDir","devMode"))
 case class ApplicationConfig(var dnsJsonFile:String,var urlShortnerJsonFile:String,@JsonScalaEnumeration(classOf[StorageMediumType]) storageMedium:StorageMedium.Value) {
+  require(Utils.fileRegexPattern.matcher(dnsJsonFile).matches())
+  require(Utils.fileRegexPattern.matcher(urlShortnerJsonFile).matches())
   dnsJsonFile = dnsJsonFile.replaceFirst("^~",System.getProperty("user.home"))
   urlShortnerJsonFile = urlShortnerJsonFile.replaceFirst("^~",System.getProperty("user.home"))
   val defaultConfDir = Config.defaultConfDir
+  val devMode = Try(System.getProperty("dev").toBoolean).getOrElse(false)
   Files.createDirectories(defaultConfDir)
   def createIfNotExistsDataFile(filename:String, defaultFileName:String): String = {
     if(!Utils.checkUrlValidity(filename)) {
@@ -106,6 +112,11 @@ object Config {
     val cfg = readConfig
     config = Option(getConfigFromTypeSafeConfig(cfg))
     config.get
+  }
+
+  def getDefaultConfig:Config = {
+    val default:com.typesafe.config.Config=ConfigFactory.load()
+    getConfigFromTypeSafeConfig(default)
   }
 
   private def getConfigFromTypeSafeConfig(cfg:com.typesafe.config.Config):Config = {

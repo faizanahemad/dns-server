@@ -183,4 +183,6 @@ object Utils {
   lazy val dnsPattern = Pattern.compile("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$")
   lazy val domainPattern = Pattern.compile("^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\\.(?![-.]))*[a-zA-Z0-9]+)?)$")
   lazy val redirectUrlPattern = Pattern.compile("^(ht|f)tp(s?)\\:\\/\\/[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,\\'\\/\\\\\\+&amp;%\\$#_]*)?$")
+  lazy val fileRegexPattern = Pattern.compile("(^([/~][^/ ]*)+/?$)|(([a-zA-Z]:)?(\\\\[a-zA-Z0-9_.-]+)+\\\\?)")
+  lazy val alphaNumericUnderscoreRegex = Pattern.compile("^[a-zA-Z0-9_]+$")
 }

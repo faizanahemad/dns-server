@@ -35,7 +35,7 @@ class DnsServer(config: Config) extends Injectable {
   var status = inject[Agent[ServerStatus]]
   val dnsRecordsStore = inject[DnsRecordsStorage]
   val redirectRecordsStore = inject[RedirectRecordsStorage]
-  val dnsPort = if (Try(System.getProperty("dev").toBoolean).getOrElse(false)) 5354 else 53
+  val dnsPort = if (config.application.devMode) 5354 else 53
 
   def start = {
     val statusFuture = status.future().flatMap {

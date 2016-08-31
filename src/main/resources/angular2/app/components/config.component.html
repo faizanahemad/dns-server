@@ -1,3 +1,109 @@
-<div class="container-fluid">
-    In Progress...
+<div class="row">
+
+    <form #configForm="ngForm" (ngSubmit)="saveConfig()">
+        <div class="col-md-2" style="padding-left: 40px;">
+            <div class="btn-group btn-group-justified" role="group">
+                <button type="button" type="submit" style="width: 100%" [disabled]="!configForm.form.valid"
+                   class="btn btn-success">
+                    <b>
+                        <span class="fa fa-floppy-o fa-fw fa-lg"></span>Save<i
+                            class="fa {{processingGlyph}} pull-right"></i>
+                    </b>
+                </button>
+            </div>
+            <br>
+            <div class="btn-group btn-group-justified" role="group">
+                <a type="button" class="btn btn-warning">
+                    <b>
+                        <span class="fa fa-refresh fa-fw fa-lg"></span>Reset<i
+                            class="fa pull-right"></i>
+                    </b>
+                </a>
+            </div>
+            <br>
+            <br>
+            <div class="btn-group btn-group-justified" role="group">
+                <a type="button" class="btn btn-primary">
+                    <b>
+                        <span class="fa fa-cogs fa-fw fa-lg"></span>Defaults<i
+                            class="fa pull-right"></i>
+                    </b>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="table-bordered" id="listingRow">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>App Config</h3>
+                            <div class="form-group">
+                                <label for="storagMedium">Storage Medium</label>
+                                <select [(ngModel)]="config.application.storageMedium" name="storagMedium" class="form-control"
+                                        id="storagMedium" required>
+                                    <option selected="selected">JSON</option>
+                                    <option>MYSQLDB</option>
+                                </select>
+                            </div>
+                            <div *ngIf="config.application.storageMedium==='JSON'" class="form-group">
+                                <label for="dnsJsonFile">DNS File</label>
+                                <input [(ngModel)]="config.application.dnsJsonFile" name="dnsJsonFile" type="text" class="form-control" id="dnsJsonFile" placeholder="DNS Records Json File" required pattern="(^([/~][^/ ]*)+/?$)|(([a-zA-Z]:)?(\\[a-zA-Z0-9_.-]+)+\\?)">
+                            </div>
+                            <div *ngIf="config.application.storageMedium==='JSON'" class="form-group">
+                                <label for="urlShortnerJsonFile">URL shortner File</label>
+                                <input [(ngModel)]="config.application.urlShortnerJsonFile" name="urlShortnerJsonFile" type="text" class="form-control" id="urlShortnerJsonFile" placeholder="URL shortner Json File" required pattern="(^([/~][^/ ]*)+/?$)|(([a-zA-Z]:)?(\\[a-zA-Z0-9_.-]+)+\\?)">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>DNS Config</h3>
+                            <div class="form-group">
+                                <label for="dnsResolver">DNS Resolver 1</label>
+                                <input [(ngModel)]="config.dnsConf.dnsResolver" name="dnsResolver" type="text" class="form-control" id="dnsResolver" placeholder="ipv4 resolver address" required pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$">
+                            </div>
+                            <div class="form-group">
+                                <label for="dnsResolverSecondLevel">DNS Resolver 2</label>
+                                <input [(ngModel)]="config.dnsConf.dnsResolverSecondLevel" name="dnsResolverSecondLevel" type="text" class="form-control" id="dnsResolverSecondLevel" placeholder="ipv4 resolver address" required pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$">
+                            </div>
+                            <div class="form-group">
+                                <label for="maxEntries">Cache Size</label>
+                                <input [(ngModel)]="config.dnsConf.maxEntries" name="maxEntries" type="number" min="1000" max="64000" step="1000" class="form-control" id="maxEntries" placeholder="Cache Size">
+                            </div>
+                            <div class="form-group">
+                                <label for="entryExpiryTime">Cache expiry duration in minutes</label>
+                                <input [(ngModel)]="config.dnsConf.entryExpiryTime" name="entryExpiryTime" min="10" max="1440" step="10" type="number" class="form-control" id="entryExpiryTime" placeholder="Expiry time minutes">
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="config.application.storageMedium==='MYSQLDB'" class="row">
+                        <div class="col-md-6">
+                            <h3>Database Config</h3>
+                            <div class="form-group">
+                                <label for="user">User</label>
+                                <input [(ngModel)]="config.dbConf.user" name="user" type="text" class="form-control" id="user" placeholder="DB User name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input [(ngModel)]="config.dbConf.password" name="password" type="text" class="form-control" id="password" placeholder="DB password">
+                            </div>
+                            <div class="form-group">
+                                <label for="url">Jdbc Url</label>
+                                <input [(ngModel)]="config.dbConf.url" name="url" type="text" class="form-control" id="url" placeholder="Jdbc Url" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dBName">Database Name</label>
+                                <input [(ngModel)]="config.dbConf.dBName" name="dBName" type="text" class="form-control" id="dBName" placeholder="Database Name" required pattern="^[a-zA-Z0-9_]+$">
+                            </div>
+                        </div>
+                        <div class="col-md-6"></div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <alert *ngIf="alert.msg" [type]="alert.type" dismissible="true">
+                {{ alert?.msg }}
+            </alert>
+        </div>
+
+        <div class="col-md-1" style="padding-right: 40px;"></div>
+    </form>
 </div>

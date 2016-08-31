@@ -43,6 +43,8 @@ object AppModule {
 
   def getConfig = Config.getConfig
 
+  def getDefaultConfig = Config.getDefaultConfig
+
   def setConfig(config: ConfigDto) = Config.setConfig(config)
 
   def getCurrentInjector: MutableInjectorAggregation = {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <property scope="context" name="logs" value="./logs" />
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
         <encoder>
@@ -16,8 +17,8 @@
     <logger name="scala.slick" level="INFO" />
     <logger name="slick.jdbc" level="DEBUG"/>
     <logger name="slick" level="INFO" />
-    <logger name="slick.jdbc.JdbcBackend.parameter" level="DEBUG" />
-    <logger name="slick.jdbc.JdbcBackend.statement" level="DEBUG" />
+    <logger name="slick.jdbc.JdbcBackend.parameter" level="INFO" />
+    <logger name="slick.jdbc.JdbcBackend.statement" level="INFO" />
     <logger name="slick.jdbc.JdbcBackend.benchmark" level="INFO" />
 
     <root level="INFO">

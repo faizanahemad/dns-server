@@ -58,6 +58,10 @@ class HttpServer{
                                       implicit val formats = Serialization.formats(NoTypeHints)
                                       okJson(AppModule.getConfig)
 
+                                    case GET -> Root / "default" =>
+                                      implicit val formats = Serialization.formats(NoTypeHints)
+                                      okJson(AppModule.getDefaultConfig)
+
                                     case req@POST -> Root =>
                                       implicit val formats = Serialization.formats(NoTypeHints)
                                       req.as[String].map(body => {
@@ -175,8 +179,9 @@ class HttpServer{
                                        val params = req.params.get _
 
                                        serverOptional.map(server => {
-                                         val redirectMap = params("domain") match {
-                                           case Some(dom) => Option(dom).filter(_.length>3).map(domain=>server.redirectRecordsStore.searchMap(domain).values.toArray)
+                                         val redirectMap = params("request_url") match {
+                                           case Some(dom) => Option(dom).filter(_.length>0)
+                                                             .map(requestUrl=>server.redirectRecordsStore.searchMap(requestUrl).values.toArray)
                                                              .getOrElse(Array[RedirectRecord]())
                                            case None => server.redirectRecordsStore.getStorageMap.values.toArray
                                          }
