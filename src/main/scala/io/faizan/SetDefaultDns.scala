@@ -30,9 +30,12 @@ class SetDefaultDns extends SuperUserApplication {
     val networkInterfaces = "networksetup -listallnetworkservices".!!
                             .split(System.lineSeparator())
 
-    val nameServersNew = "127.0.0.1"+: nameServersArray.toList
+    if (nameServersArray.indexOf("127.0.0.1")== -1){
+      val nameServersNew = "127.0.0.1"+: nameServersArray.toList
 
-    val commands = networkInterfaces.map(i=>"networksetup -setdnsservers %s %s".format(i,nameServersNew.mkString(" ")))
-    commands.map(_.!!)
+      //    val commands = networkInterfaces.map(i=>"sudo networksetup -setdnsservers %s %s".format(i,nameServersNew.mkString(" ")))
+      val commands = List("sudo networksetup -setdnsservers Wi-Fi %s".format(nameServersNew.mkString(" ")))
+      commands.map(_.!!)
+    }
   }
 }

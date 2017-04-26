@@ -40,7 +40,7 @@ class DnsHandlerActor(implicit inj: Injector) extends Actor with Injectable {
       val ans = fetchDNSAnswer(qname,question)
       val addToCache = dnsDetails.addToCache _
       val res = ans map(answer=>{
-        val rd=answer.record.copy(header = header.copy(rcode = answer.rcode, qr = true)) ~ Answers()
+        val rd=answer.record.copy(header = header.copy(rcode = answer.rcode, qr = true, ra = true)) ~ Answers()
         if (!answer.cached && answer.rcode==0) {
           addToCache(qname,rd)
         }

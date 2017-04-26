@@ -22,7 +22,6 @@ object UiRouter {
   config.setTemplateLoader(loader)
   val template = config.getTemplate("jade/app.jade")
   val html = config.renderTemplate(template, Map[String,AnyRef]().asJava)
-  val resourceMap = scala.collection.mutable.Map[String,Response]()
 
   val router = HttpService{
                             case GET -> Root =>
@@ -34,13 +33,8 @@ object UiRouter {
   val resources = HttpService {
                               case req @ GET -> "angular2" /: path =>
                                 val pathString = path.toString
-                                resourceMap.get(pathString) match {
-                                  case Some(r)=>Task.now(r)
-                                  case None=>
-                                    val staticFile = StaticFile.fromResource("/angular2"+pathString, Some(req))
-                                    staticFile.foreach(r=>resourceMap.+=(pathString->r))
-                                    staticFile.fold(NotFound())(Task.now)
-                                }
+                                val staticFile = StaticFile.fromResource("/angular2"+pathString, Some(req))
+                                staticFile.fold(NotFound())(Task.now)
                               }
   //                              val resource = Option(this.getClass.getClassLoader.getResource("angular2"+path))
   //                                             .flatMap(url=>StaticFile.fromURL(url, Some(req)))
